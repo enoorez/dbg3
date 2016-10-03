@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="DbgEngine\DbgEngine.cpp">
+      <Filter>04-调试引擎</Filter>
+    </ClCompile>
+    <ClCompile Include="dbgUi\dbgUi.cpp">
+      <Filter>06-用户界面</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakpointEngine\BreakpointEngine.cpp">
+      <Filter>03-断点引擎</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakpointEngine\BPObjcet\BPObjcet.cpp">
+      <Filter>03-断点引擎\0-BPObject</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakpointEngine\BPTF\BPTF.cpp">
+      <Filter>03-断点引擎\1-BPTF</Filter>
+    </ClCompile>
+    <ClCompile Include="Expression\Expression.cpp">
+      <Filter>05-调试表达式</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakpointEngine\BPSoft\BPSoft.cpp">
+      <Filter>03-断点引擎\2-BPSoft</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakpointEngine\BPAcc\BPAcc.cpp">
+      <Filter>03-断点引擎\BPAcc</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakpointEngine\BPHard\BPHard.cpp">
+      <Filter>03-断点引擎\3-BPHard</Filter>
+    </ClCompile>
+    <ClCompile Include="DbgObject\DbgObject.cpp">
+      <Filter>01-调试对象</Filter>
+    </ClCompile>
+    <ClCompile Include="DisAssambly\DiAsmEngine.cpp">
+      <Filter>08-反汇编引擎</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakpointEngine\DbgSymbol\DbgSymbol.cpp">
+      <Filter>03-断点引擎\调试符号</Filter>
+    </ClCompile>
+    <ClCompile Include="pectrl\Pectrl.cpp">
+      <Filter>PE</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="01-调试对象">
+      <UniqueIdentifier>{2c7abcbb-45e2-4705-98b2-84327bef19fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03-断点引擎">
+      <UniqueIdentifier>{8d42a04d-91d9-403c-b8cf-91a58ae375ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04-调试引擎">
+      <UniqueIdentifier>{23cb1232-1635-4b63-bc1e-236c2f13f8e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05-调试表达式">
+      <UniqueIdentifier>{75a6ffa0-5691-4874-9799-a250593028b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06-用户界面">
+      <UniqueIdentifier>{fed466cd-d611-42d6-a69b-cab0a37820a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03-断点引擎\BPAcc">
+      <UniqueIdentifier>{659da7ff-ca87-4aed-9a9b-dbcadd49f998}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="08-反汇编引擎">
+      <UniqueIdentifier>{a7563e36-2795-481e-a03d-d01e8a4772f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03-断点引擎\调试符号">
+      <UniqueIdentifier>{a37358d4-7f96-46be-a8f9-8933f42225cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PE">
+      <UniqueIdentifier>{6063441d-48d4-4279-bfb8-383051cc2aa2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03-断点引擎\0-BPObject">
+      <UniqueIdentifier>{4310d011-3ea0-4fba-86e4-d202cf6898a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03-断点引擎\1-BPTF">
+      <UniqueIdentifier>{1d8c13e9-03d3-403d-a0a3-d61d379df24f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03-断点引擎\2-BPSoft">
+      <UniqueIdentifier>{2e9ee1cf-df30-40c5-b4a5-3dc27b4b4a51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03-断点引擎\3-BPHard">
+      <UniqueIdentifier>{1e47011a-1281-4ef3-9ced-bbf37fd9bbaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="09-汇编引擎">
+      <UniqueIdentifier>{31405af5-5560-4011-b6fb-f48b3d7c2ad6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DbgEngine\DbgEngine.h">
+      <Filter>04-调试引擎</Filter>
+    </ClInclude>
+    <ClInclude Include="dbgUi\dbgUi.h">
+      <Filter>06-用户界面</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakpointEngine\BreakpointEngine.h">
+      <Filter>03-断点引擎</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakpointEngine\BPObjcet\BPObjcet.h">
+      <Filter>03-断点引擎\0-BPObject</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakpointEngine\BPTF\BPTF.h">
+      <Filter>03-断点引擎\1-BPTF</Filter>
+    </ClInclude>
+    <ClInclude Include="Expression\Expression.h">
+      <Filter>05-调试表达式</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakpointEngine\BPSoft\BPSoft.h">
+      <Filter>03-断点引擎\2-BPSoft</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakpointEngine\BPAcc\BPAcc.h">
+      <Filter>03-断点引擎\BPAcc</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakpointEngine\BPHard\BPHard.h">
+      <Filter>03-断点引擎\3-BPHard</Filter>
+    </ClInclude>
+    <ClInclude Include="DbgObject\DbgObject.h">
+      <Filter>01-调试对象</Filter>
+    </ClInclude>
+    <ClInclude Include="DisAssambly\DiAsmEngine.h">
+      <Filter>08-反汇编引擎</Filter>
+    </ClInclude>
+    <ClInclude Include="AssamblyEngine\XEDParse.h">
+      <Filter>09-汇编引擎</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakpointEngine\DbgSymbol\DbgSymbol.h">
+      <Filter>03-断点引擎\调试符号</Filter>
+    </ClInclude>
+    <ClInclude Include="pectrl\Pectrl.h">
+      <Filter>PE</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="DisAssambly\BeaEngine_4.1\Win32\Win32\Lib\BeaEngine.lib">
+      <Filter>08-反汇编引擎</Filter>
+    </Library>
+  </ItemGroup>
+</Project>
