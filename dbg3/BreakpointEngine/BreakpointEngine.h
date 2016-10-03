@@ -20,8 +20,8 @@ public:
 protected:
 	// 根据异常信息来查找断点, 返回断点在链表中的迭代器
 	BpItr FindBreakpoint(const EXCEPTION_DEBUG_INFO& ExceptionInfo);
-	// 修整断点
-	bool FixBreakpoint(BpItr FindItr);
+	// 修复异常
+	bool FixException(BpItr FindItr);
 	// 恢复失效的断点
 	bool ReInstallBreakpoint();
 	// 检查断点是否重复

@@ -59,7 +59,7 @@ E_Status DbgEngine::Exec()
 				goto _SUCESS;
 			}
 
-			// 重新插入为被触发但已失效的断点
+			// 重新安装已失效的断点
 			ReInstallBreakpoint();
 
 			// 根据异常信息查找断点
@@ -69,9 +69,8 @@ E_Status DbgEngine::Exec()
 				dwStatus = m_pfnOtherException?m_pfnOtherException(dbgEvent.u.Exception):DBG_EXCEPTION_HANDLED;
 			else
 			{
-				// 取出断点(不同的断点有不同的方式).
-				// 如果能够成功修正断点, 则调用用户的处理函数
-				if(true == FixBreakpoint(itr))
+				// 修复异常,如果能够成功修正断点, 则调用用户的处理函数
+				if(true == FixException(itr))
 				{
 					if(m_pfnBreakpointProc)
 						m_pfnBreakpointProc(this);

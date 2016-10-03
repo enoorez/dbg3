@@ -61,11 +61,11 @@ BPObject* BreakpointEngine::FindBreakpoint(uaddr uAddress , E_BPType eType)
 
 
 /**
-  * 功  能: 修复断点
+  * 功  能: 修复异常
   * 返回值: bool ,则返回true,否则返回false
   * 形  参: BpItr FindItr
   */
-bool BreakpointEngine::FixBreakpoint(BpItr FindItr)
+bool BreakpointEngine::FixException(BpItr FindItr)
 {
 	BPObject* pBp = *FindItr;
 
