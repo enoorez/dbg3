@@ -6,7 +6,7 @@ BPTF::BPTF(DbgObject& dbgObj , bool bIsTFBP)
 	:BPObject(dbgObj)
 	, m_bIsUserBP(bIsTFBP)
 {
-	Install();
+	//Install();
 }
 
 BPTF::~BPTF()

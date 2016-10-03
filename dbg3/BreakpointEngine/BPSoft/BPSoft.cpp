@@ -6,7 +6,7 @@ BPSoft::BPSoft(DbgObject& dbgObject , uaddr uAddress)
 	, m_uData()
 {
 	BPObject::m_uAddress = uAddress;
-	Install();
+	//Install();
 }
 
 BPSoft::~BPSoft()

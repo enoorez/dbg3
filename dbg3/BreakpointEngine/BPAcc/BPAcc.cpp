@@ -17,7 +17,7 @@ BPAcc::BPAcc(DbgObject& dbgObj , uaddr uAddr , E_BPType eType , uint uLen)
 	, m_currentHitAccType()
 {
 	m_uAddress = uAddr;
-	Install();
+	//Install();
 }
 
 BPAcc::~BPAcc()

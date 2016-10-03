@@ -9,7 +9,7 @@ BPHard::BPHard(DbgObject& dbgObj , uaddr uAddress , E_BPType eType , uint uLen)
 	, m_uDbgRegNum()
 {
 	BPObject::m_uAddress=uAddress;
-	Install();
+	//Install();
 }
 
 BPHard::~BPHard()
