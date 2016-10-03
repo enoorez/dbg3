@@ -2,15 +2,6 @@
 #include "Pectrl.h"
 #include <stdio.h>
 
-#include <vector>
-#include <time.h>
-using std::vector;
-#include <map>
-using std::map;
-using std::pair;
-#include <string>
-using std::string;
-
 
 
 
@@ -86,7 +77,6 @@ PIMAGE_SECTION_HEADER GetPELastScnHdr(const LPVOID pDosHdr)
 	DWORD	dwNumOfScn = GetPEFileHdr(pDosHdr)->NumberOfSections;
 	return &GetPEFirScnHdr(pDosHdr)[ dwNumOfScn - 1 ];
 }
-
 
 
 /** 判断是否是一个有效的PE文件 */
@@ -183,48 +173,6 @@ void SetPEImgSize(const LPVOID pDosHdr , DWORD dwSize)
 		pOptHdr64->SizeOfImage = dwSize;
 	}
 	
-}
-
-/** 将PE文件从磁盘中读入内存 */
-LPBYTE	LoadPEFile(const wchar_t* pszPath , unsigned int* puSize)
-{
-	FILE*	pFile = NULL;
-	_wfopen_s(&pFile , pszPath , L"rb");
-	if(pFile == NULL)
-		return NULL;
-
-	// 获取文件大小
-	DWORD	dwSize = 0;
-	fseek(pFile , 0 , SEEK_END);
-	dwSize = ftell(pFile);
-	fseek(pFile , 0 , SEEK_SET);
-
-	// 申请动态内存
-	LPBYTE lpData = new BYTE[ dwSize ];
-	if(lpData == NULL)
-	{
-		fclose(pFile);
-		return NULL;
-	}
-
-	// 读取文件到内存
-	if(dwSize != fread_s(lpData , dwSize , 1 , dwSize , pFile))
-	{
-		fclose(pFile);
-		FreePEFile(lpData);
-		return NULL;
-	}
-	if(puSize != NULL)
-		*puSize = dwSize;
-
-	fclose(pFile);
-	return lpData;
-}
-
-/** 释放由LoadPEFile函数返回的内存缓冲区 */
-void FreePEFile(const LPBYTE lpData)
-{
-	if(lpData != NULL)delete[] lpData;
 }
 
 
@@ -329,30 +277,6 @@ PIMAGE_SECTION_HEADER AddPEScn(const LPVOID pDosHdr , const PIMAGE_SECTION_HEADE
 	return (pLastScnHdr+1);
 }
 
-/** 将PE文件从内存缓冲区保存到磁盘上的文件 */
-bool SavePEFile(const LPBYTE lpData , DWORD dwSize , const TCHAR* pszFilePath)
-{
-	if(lpData == NULL || pszFilePath == NULL)
-		return false;
-
-    // 打开文件
-    FILE* pFile = NULL;
-	_wfopen_s(&pFile , pszFilePath , L"wb");
-    if(pFile == NULL)
-        return false;
-    
-	// 写入文件
-	if(dwSize != fwrite(lpData , 1 , dwSize , pFile))
-	{
-		fclose(pFile);
-		return false;
-	}
-
-    fclose(pFile);
-    return true;
-}
-
-
 
 /** 获取数据目录表 */
 PIMAGE_DATA_DIRECTORY GetPEDataDirTab(const LPVOID pDosHdr)
@@ -374,86 +298,6 @@ PIMAGE_DATA_DIRECTORY GetPEDataDirTab(const LPVOID pDosHdr)
 		pDataDir = pOptHdr64->DataDirectory;
 	}
 	return pDataDir;
-}
-
-/** 获取导入表 */
-DWORD GetPEImpTab(const LPVOID pDosHdr , unsigned int *puSize)
-{
-	if(pDosHdr == NULL)
-		return false;
-	
-	
-	PIMAGE_DATA_DIRECTORY pDataDir = GetPEDataDirTab(pDosHdr);
-
-	if(puSize != NULL)
-		*puSize = pDataDir[ 1 ].Size;
-
-	return pDataDir[ 1 ].VirtualAddress;
-}
-
-/** 获取导出表 */
-DWORD GetPEExpTab(const LPVOID pDosHdr , unsigned int *puSize /*= NULL*/)
-{
-	if(pDosHdr == NULL)
-		return 0;
-
-	PIMAGE_DATA_DIRECTORY pDataDir = GetPEDataDirTab(pDosHdr);
-	if(puSize != NULL)
-		*puSize = pDataDir[ 0 ].Size;
-
-	return pDataDir[ 0 ].VirtualAddress;
-}
-
-/** 修复IAT */
-bool FixPEIAT(LPVOID pDosHdr , 
-			  LPVOID pImgTabs , 
-			  fnVirtualProtect pfnVirtualProtect , 
-			  fnLoadLibraryA pfnLoadLibraryA , 
-			  fnGetProcAddr pfnGetProcAddr )
-{
-	if(pDosHdr == NULL || pImgTabs == NULL)
-		return false;
-
-	PIMAGE_IMPORT_DESCRIPTOR pImp = (PIMAGE_IMPORT_DESCRIPTOR)pImgTabs;
-	HMODULE	 hModule = 0;
-	DWORD	dwOldProtect = 0;
-	for(;;)
-	{
-		if(pImp->Characteristics == 0)
-			break;
-		PIMAGE_THUNK_DATA	pIAT = (PIMAGE_THUNK_DATA)(pImp->FirstThunk+(DWORD)pDosHdr);
-		PIMAGE_THUNK_DATA	pINT = (PIMAGE_THUNK_DATA)(pImp->Characteristics + (DWORD)pDosHdr);
-		hModule = pfnLoadLibraryA((char*)(pImp->Name + (DWORD)pDosHdr));
-		if(hModule == 0)
-			return false;
-		
-		for(;;)
-		{
-			if(pIAT->u1.AddressOfData == 0)
-				break;
-			pfnVirtualProtect(pIAT , 4 , PAGE_EXECUTE_READWRITE , &dwOldProtect);
-			if((pINT->u1.Ordinal) & 0x80000000)
-			{
-				pIAT->u1.Function = (DWORD)pfnGetProcAddr(hModule ,
-														  (char*)(pINT->u1.Ordinal & 0x7fffffff)
-														  );
-			}
-			else
-			{
-				PIMAGE_IMPORT_BY_NAME pName = 0;
-				pName = (PIMAGE_IMPORT_BY_NAME)(pINT->u1.Function + (DWORD)pDosHdr);
-				pIAT->u1.Function = (DWORD)pfnGetProcAddr(hModule ,
-														  (char*)(pName->Name)
-														  );
-			}
-
-			pfnVirtualProtect(pIAT , 4 , dwOldProtect , &dwOldProtect);
-			++pINT;
-			++pIAT;
-		}
-		++pImp;
-	}
-	return true;
 }
 
 
