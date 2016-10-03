@@ -1,61 +1,71 @@
 /**
-  * 利用DbgEngine的Open()打开一个进程进行调试.
-  * 利用DbgEngine的Exec()监视被调试进程的调试事件
-  * 利用DbgEngine的AddBreakpoint()设置断点
-  * 利用DbgEngine的pfnBreakpointProc函数指针去处理断点事件
-  * 利用DbgEngine的GetRegInfo()获取寄存器信息
-  * 利用DbgEngine的SetRegInfo()设置寄存器信息
-  * 利用DbgEngine的ReadMomory()获取指定地址的内存
-  * 利用DbgEngine的WriteMomory()设置指定地址的内存
+  * 利用DbgEngine类的Open()打开一个进程进行调试.
+  * 利用DbgEngine类的Exec()接收被调试进程的调试事件
+  * 利用DbgEngine类的AddBreakpoint()设置断点
+  * 利用DbgEngine类的pfnBreakpointProc函数指针去处理断点事件
+  * 利用DbgEngine类的GetRegInfo()获取寄存器信息
+  * 利用DbgEngine类的SetRegInfo()设置寄存器信息
+  * 利用DbgEngine类的ReadMomory()获取指定地址的内存
+  * 利用DbgEngine类的WriteMomory()设置指定地址的内存
   * 利用DisAssambly的DiAsm()来将一段opcode转换成汇编代码
   * 利用XEDParse的XEDParseAssemble()来将一段汇编代码转换成opcode
   */
 
-#include "DbgEngine/DbgEngine.h"
-#include "dbgUi/dbgUi.h"
-#include <iostream>
-#include "Expression/Expression.h"
-#include "DisAssambly/DiAsmEngine.h"
-#include "AssamblyEngine/XEDParse.h"
+#include "DbgEngine/DbgEngine.h" // 调试引擎
+#include "dbgUi/dbgUi.h" // 用户界面
+#include "Expression/Expression.h" // 表达式模块
+#include "DisAssambly/DiAsmEngine.h" // 反汇编引擎
+#include "AssamblyEngine/XEDParse.h" // 汇编引擎
 #pragma comment(lib,"AssamblyEngine\\XEDParse.lib")
+
+#include <iostream>
 using namespace std;
 
-void showHelp();
+// 显示调试器命令行帮助信息
+void showHelp(); 
+// 将字符串分割成两个字符串(将第一次遇到的空格替换成字符串结束符)
 char* GetSecondArg(char* pBuff);
+inline char* SkipSpace(char* pBuff);
+
+// 调试器引擎的断点处理回调函数
+// 断点被命中时,调试器引擎会调用此函数
 unsigned int __stdcall DebugEvent(void* uParam);
 
 int main()
 {
-	// 设置代码页
+	// 设置代码页,以支持中文
 	setlocale(LC_ALL , "chs");
 	cout << "\t\t---------< Dbg >---------\n";
 	cout << "\t\t---< 按h查看完整命令 >---\n";
 
 
-	DbgEngine		dbgEng;
-	// 设置处理断点的回调函数
+
+	DbgEngine		dbgEng; // 调试器引擎对象
+
+	// 注册断点处理的回调函数
 	dbgEng.m_pfnBreakpointProc = (fnExceptionProc)DebugEvent;
 	
 	char szPath[ MAX_PATH ];
-
 	bool bCreateThread = false;
+
 	while(true)
 	{
 		while(true)
 		{
 			cout << "输入路径以打开调试进程:";
 			cin.getline(szPath , MAX_PATH);
+
 			// 打开调试进程
 			if(dbgEng.Open(szPath))
 				break;
+
 			cout << "程序打开失败\n";
 		}
 		cout << "调试进程创建成功, 可以进行调试\n";
 
-
 		while(1)
 		{
-			// 运行调试器,Exec不处于阻塞状态
+			// 运行调试器,Exec不处于阻塞状态,因此需要放在while循环中.
 			if(e_s_processQuit == dbgEng.Exec())
 			{
 				dbgEng.Close();
@@ -67,69 +77,6 @@ int main()
 	}
 }
 
-// 显示帮助信息
-void showHelp()
-{
-	printf("----------------------------------------------------\n");
-	printf("h : 查看帮助\n");
-	//printf("o : 打开调试进程\n");
-	//printf("    格式为: o 可执行程序路径\n");
-	printf("exit: 退出调试器\n");
-	printf("ml: 显示模块列表\n");
-	printf("g : 运行程序\n");
-	printf("p : 单步\n");
-	printf("t : 步过\n");
-	printf("a : 进入汇编模式\n");
-	printf("    格式为 : a 开始地址\n");
-	printf("    输入quit结束汇编模式\n");
-	printf("u : 查看反汇编\n");
-	printf("    格式为 : u 开始地址(表达式) 指令条数\n");
-	printf("    例如   : u eip\n");
-	printf("    例如   : u eax 100\n");
-	printf("    例如   : u 0x401000 100\n");
-	printf("d : 查看内存数据\n");
-	printf("    格式为 : d 开始地址\n");
-	printf("    格式为 : da 开始地址(显示字符串时使用ANSIII字符)\n");
-	printf("    格式为 : du 开始地址(显示字符串时使用Unicode字符)\n");
-	printf("r : 查看/设置寄存器\n");
-	printf("    格式为 : r 寄存器名\n");
-	printf("    r eax = 0x1000\n");
-	printf("b : 设置断点\n");
-	printf("    默认格式: b 地址\n");
-	printf("    可选格式:\n");
-	printf("    bp 地址 条件表达式 => 软件断点\n");
-	printf("    例如: bp 0x401000 eax==0 && byte[0x403000]==97\n");
-	printf("    bh 地址 断点属性 条件表达式 => 硬件断点\n");
-	printf("    例如: bh 0x401000 e \n");
-	printf("    bm 地址 断点属性 条件表达式 => 内存断点\n");
-	printf("    例如: bm 0x401000 e \n");
-	printf("    bl 列出所有断点\n");
-	printf("    bc 序号 删除指定序号的断点\n");
-	printf("k : 查看栈\n");
-	printf("----------------------------------------------------\n");
-
-}
-
-// 获取第二个参数(参数之间以空格间隔开
-char* GetSecondArg(char* pBuff)
-{
-	for(; *pBuff != 0; ++pBuff)
-	{
-		if(*pBuff == ' ')//找到第一个空格
-		{
-			*pBuff = 0; // 把空格变成字符串结束符,分隔两个参数
-			return pBuff + 1;//返回第二个参数的开始地址
-		}
-	}
-	return pBuff;
-}
-
-// 跳过空格(包括换行符,tab符)
-inline char* SkipSpace(char* pBuff)
-{
-	for(; *pBuff == ' ' || *pBuff == '\t' || *pBuff == '\r' || *pBuff=='\n' ; ++pBuff);
-	return pBuff;
-}
 
 // 显示反汇编
 void ShowAsm(DbgEngine& dbgEngine,
@@ -147,6 +94,7 @@ void ShowAsm(DbgEngine& dbgEngine,
 
 	vector<DISASMSTRUST> vecDisAsm;
 	disAsmEng.diAsm(Addr , vecDisAsm , nLine);
+
 	for(vector<DISASMSTRUST>::iterator i = vecDisAsm.begin();
 		i != vecDisAsm.end();
 		++i)
@@ -175,9 +123,14 @@ unsigned int __stdcall DebugEvent(void* uParam)
 	vector<DISASMSTRUST> vecDisAsm;
 	char* pCmdLine = 0;
 
+	// 清屏
 	system("cls");
+	// 获取寄存器信息
 	pDbg->GetRegInfo(ct);
+	// 使用ui模块将寄存器信息输出
 	ui.showReg(ct);
+
+	// 输出反汇编
 	ShowAsm(*pDbg , ui , disAsm , 20 , ct.Eip);
 
 	while(1)
@@ -185,15 +138,19 @@ unsigned int __stdcall DebugEvent(void* uParam)
 		do
 		{
 			cout <<  "> ";
+			// 接收用户输入的命令
 			gets_s(szCmdLine , 64);
 		} while(*szCmdLine == '\0');
+
+		// 跳过行头空格
 		pCmdLine = SkipSpace(szCmdLine);
 
 		// 判断是否需要退出调试器
 		if(*(DWORD*)pCmdLine == 'tixe')
 			exit(0);
 
-		// 筛选命令
+
+		// 解析用户输入的命令
 		switch(*pCmdLine)
 		{
 			/*查看反汇编*/
@@ -203,7 +160,7 @@ unsigned int __stdcall DebugEvent(void* uParam)
 				SIZE_T  uAddr = 0;
 				DWORD	dwLineCount = 0;
 
-				// 只有u没有其他参数时
+				// 判断是否是只有u没有其他参数
 				if(pCmdLine[ 1 ] == 0 || pCmdLine[ 2 ] == 0) // if(strlen(szCmdLine) < 2)
 				{
 					// 设置默认的反汇编地址和反汇编指令数量
@@ -215,12 +172,14 @@ unsigned int __stdcall DebugEvent(void* uParam)
 				{
 					char* pAddress = SkipSpace(pCmdLine + 1);
 					char* pLineCount = GetSecondArg(pAddress);
-					// 获取反汇编地址
+					// 使用表达式模块获取值以获取反汇编地址
 					uAddr = exp.getValue(pAddress);
 					// 获取反汇编指令数量
 					dwLineCount = exp.getValue(pLineCount);
+					// 如果没有行数,则默认显示10行
 					dwLineCount = dwLineCount == 0 ? 10 : dwLineCount;
 				}
+				// 显示反汇编
 				ShowAsm(*pDbg , ui , disAsm , dwLineCount , uAddr);
 				break;
 			}
@@ -289,8 +248,7 @@ unsigned int __stdcall DebugEvent(void* uParam)
 				}
 				SSIZE_T nValue = exp.getValue(szCmdLine + 1);
 
-				char* pSecArg = 0;// 
-				for(pSecArg = szCmdLine + 1; *pSecArg == ' '; ++pSecArg);
+				char* pSecArg = SkipSpace(szCmdLine + 1);
 				pSecArg = GetSecondArg(pSecArg);
 				if(*pSecArg == 0)
 					printf("%s = 0x%X\n" , szCmdLine + 1 , nValue);
@@ -300,7 +258,7 @@ unsigned int __stdcall DebugEvent(void* uParam)
 			case 'd':/*查看数据*/
 			{
 				char *p = &szCmdLine[ 1 ];
-				// 筛选格式
+				// 筛选数据格式
 				switch(*p)
 				{
 					case 'u':/*unicode字符串*/
@@ -327,11 +285,15 @@ unsigned int __stdcall DebugEvent(void* uParam)
 			/*单步步入*/
 			case 't': // 步入
 			{
+				// 使用调试器引擎的函数来添加一个TF断点
 				BPObject *pBp = pDbg->AddBreakPoint(0 , e_bt_tf);
 				if(pBp == nullptr)
 					return 0;
+
 				// 获取条件
 				char* pCondition = SkipSpace(pCmdLine + 1);
+
+				// 设置断点的中断条件
 				if(*pCondition != 0)
 				{
 					pBp->SetCondition(pCondition);
@@ -380,6 +342,7 @@ unsigned int __stdcall DebugEvent(void* uParam)
 				}
 				else
 					pBp->SetCondition(true);
+
 				return 0;
 			}
 			/*查看加载的模块*/
@@ -468,10 +431,8 @@ unsigned int __stdcall DebugEvent(void* uParam)
 						break;
 					}
 					case 'p':/*普通断点*/
-						++p;
-					case ' ':// 普通断点
 					{
-						bpType = e_bt_soft;
+ 						bpType = e_bt_soft;
 						// 地址 条件						
 						p = SkipSpace(p + 1);
 						pRule = GetSecondArg(p);
@@ -483,7 +444,7 @@ unsigned int __stdcall DebugEvent(void* uParam)
 						break;
 					}
 					default: 
-						cout << "没有该类型的变量\n";
+						cout << "没有该类型的断点\n";
 						continue;// 结束本次while循环
 					
 				}
@@ -514,4 +475,68 @@ unsigned int __stdcall DebugEvent(void* uParam)
 	
 
 	return 0;
+}
+
+
+// 显示帮助信息
+void showHelp()
+{
+	printf("----------------------------------------------------\n");
+	printf("h : 查看帮助\n");
+	//printf("o : 打开调试进程\n");
+	//printf("    格式为: o 可执行程序路径\n");
+	printf("exit: 退出调试器\n");
+	printf("ml: 显示模块列表\n");
+	printf("g : 运行程序\n");
+	printf("p : 单步\n");
+	printf("t : 步过\n");
+	printf("a : 进入汇编模式\n");
+	printf("    格式为 : a 开始地址\n");
+	printf("    输入quit结束汇编模式\n");
+	printf("u : 查看反汇编\n");
+	printf("    格式为 : u 开始地址(表达式) 指令条数\n");
+	printf("    例如   : u eip\n");
+	printf("    例如   : u eax 100\n");
+	printf("    例如   : u 0x401000 100\n");
+	printf("d : 查看内存数据\n");
+	printf("    格式为 : d 开始地址\n");
+	printf("    格式为 : da 开始地址(显示字符串时使用ANSIII字符)\n");
+	printf("    格式为 : du 开始地址(显示字符串时使用Unicode字符)\n");
+	printf("r : 查看/设置寄存器\n");
+	printf("    格式为 : r 寄存器名\n");
+	printf("    r eax = 0x1000\n");
+	printf("b : 设置断点\n");
+	printf("    格式:\n");
+	printf("    bp 地址 条件表达式 => 软件断点\n");
+	printf("    例如: bp 0x401000 eax==0 && byte[0x403000]==97\n");
+	printf("    bh 地址 断点属性 条件表达式 => 硬件断点\n");
+	printf("    例如: bh 0x401000 e \n");
+	printf("    bm 地址 断点属性 条件表达式 => 内存断点\n");
+	printf("    例如: bm 0x401000 e \n");
+	printf("    bl 列出所有断点\n");
+	printf("    bc 序号 删除指定序号的断点\n");
+	printf("k : 查看栈\n");
+	printf("----------------------------------------------------\n");
+
+}
+
+// 获取第二个参数(参数之间以空格间隔开
+char* GetSecondArg(char* pBuff)
+{
+	for(; *pBuff != 0; ++pBuff)
+	{
+		if(*pBuff == ' ')//找到第一个空格
+		{
+			*pBuff = 0; // 把空格变成字符串结束符,分隔两个参数
+			return pBuff + 1;//返回第二个参数的开始地址
+		}
+	}
+	return pBuff;
+}
+
+// 跳过空格(包括换行符,tab符)
+inline char* SkipSpace(char* pBuff)
+{
+	for(; *pBuff == ' ' || *pBuff == '\t' || *pBuff == '\r' || *pBuff == '\n' ; ++pBuff);
+	return pBuff;
 }
