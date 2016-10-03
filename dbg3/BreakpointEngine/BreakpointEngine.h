@@ -5,16 +5,17 @@
 #include <list>
 using std::list;
 
-
-typedef list<BPObject*>::iterator BpItr;
+typedef list<BPObject*>::iterator BpItr;  //迭代器
 
 class BreakpointEngine : public DbgObject , public DbgSymbol
 {
+	
 	list<BPObject*>	m_bpList;	// 断点列表
 	list<BPObject*> m_bpRecList;// 待恢复的断点列表
 public:
 	BreakpointEngine();
 	~BreakpointEngine();
+
 
 protected:
 	// 根据异常信息来查找断点, 返回断点在链表中的迭代器
@@ -42,7 +43,6 @@ public:
 	list<BPObject*>::const_iterator GetBPListBegin()const;
 	// 获取断点列表的结束迭代器
 	list<BPObject*>::const_iterator GetBPListEnd()const;
-
 
 	// 给断点设置一个条件表达式
 	static void SetExp(BPObject* pBp , const CStringA& strExp);
