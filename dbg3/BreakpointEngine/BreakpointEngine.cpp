@@ -87,7 +87,7 @@ bool BreakpointEngine::FixException(BpItr FindItr)
 	else // 没有被命中.
 	{
 		// 如果是tf断点，则不需要插入待恢复列表
-		if(pBp->Type() == e_bt_tf)
+		if(pBp->Type() == breakpointType_tf)
 		{
 			pBp->Install();
 			return bHit;
@@ -101,7 +101,7 @@ bool BreakpointEngine::FixException(BpItr FindItr)
 		m_bpList.push_front(new BPTF(*this , false));
 	}
 
-	// 返回是否被命中
+	// 返回断点是否被命中
 	return bHit;
 }
 
@@ -138,7 +138,7 @@ BPObject* BreakpointEngine::AddBreakPoint(uaddr uAddress , E_BPType eType , uint
 	if(pBp!=nullptr) // 有重复的TF断点
 	{
 		
-		if(pBp->Type() != e_bt_tf)
+		if(pBp->Type() != breakpointType_tf)
 			return pBp;
 	
 		// 如果重复的断点是TF断点,则需要将TF断点转换
@@ -147,13 +147,13 @@ BPObject* BreakpointEngine::AddBreakPoint(uaddr uAddress , E_BPType eType , uint
 		return pBp;
 	}
 
-	if(eType == e_bt_tf)// TF断点
+	if(eType == breakpointType_tf)// TF断点
 		pBp = new BPTF(*this,true);
-	else if(eType == e_bt_soft) // 软件断点
+	else if(eType == breakpointType_soft) // 软件断点
 		pBp = (new BPSoft(*this , uAddress));
-	else if(eType >= e_bt_acc && eType <= e_bt_acc_rw)//内存访问断点
+	else if(eType >= breakpointType_acc && eType <= breakpointType_acc_rw)//内存访问断点
 		pBp = (new BPAcc(*this , uAddress , eType , uLen));
-	else if(eType >= e_bt_hard && eType <= e_bt_hard_rw)// 硬件断点
+	else if(eType >= breakpointType_hard && eType <= breakpointType_hard_rw)// 硬件断点
 		pBp = (new BPHard(*this , uAddress , eType , uLen));
 	else
 		return nullptr;
@@ -172,7 +172,7 @@ BPObject* BreakpointEngine::AddBreakPoint(const char* pszApiName)
 	if(address == 0)
 		return nullptr;
 	// 添加一个软甲断点
-	return AddBreakPoint(address , e_bt_soft);
+	return AddBreakPoint(address , breakpointType_soft);
 }
 
 /**
@@ -201,9 +201,7 @@ bool BreakpointEngine::DeleteBreakpoint(uint uIndex)
 	if(uIndex >= m_bpList.size())
 		return false;
 
-	for(BpItr i = m_bpList.begin();
-		i != m_bpList.end();
-		++i)
+	for(BpItr i = m_bpList.begin(); i != m_bpList.end(); ++i)
 	{
 		if(uIndex-- == 0)
 		{

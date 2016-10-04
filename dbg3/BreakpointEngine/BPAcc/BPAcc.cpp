@@ -88,13 +88,13 @@ bool BPAcc::IsHit()const
 
 	switch(m_eType)
 	{
-		case e_bt_acc_r:
+		case breakpointType_acc_r:
 			if(m_currentHitAccType != 0)
 				return false;
-		case e_bt_acc_w:
+		case breakpointType_acc_w:
 			if(m_currentHitAccType != 1)
 				return false;
-		case e_bt_acc_e:
+		case breakpointType_acc_e:
 			if(m_currentHitAccType != 8)
 				return false;
 	}

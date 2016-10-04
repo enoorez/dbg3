@@ -67,7 +67,7 @@ void DbgUi::showAsm(SIZE_T Addr ,
 					const WCHAR* pszLineHeader)
 {
 	//如果地址是断点 显示断点的颜色
-	if(nullptr != m_pBpEngine->FindBreakpoint(Addr,e_bt_soft))
+	if(nullptr != m_pBpEngine->FindBreakpoint(Addr,breakpointType_soft))
 	{
 		SetConsoleTextAttribute(m_hStdOut , B_H_RED );//红色
 		wprintf(L"%s0x%08X" , pszLineHeader,Addr);
@@ -448,7 +448,7 @@ void DbgUi::showBreakPointList(list<BPObject*>::const_iterator beginItr ,
 	for(;beginItr != endItr ; ++beginItr)
 	{
 		E_BPType Type = (*beginItr)->Type();
-		if(Type == e_bt_tf)
+		if(Type == breakpointType_tf)
 			continue;
 
 		printf("%5d |" , j++);
@@ -456,28 +456,28 @@ void DbgUi::showBreakPointList(list<BPObject*>::const_iterator beginItr ,
 
 		switch(Type)
 		{
-			case e_bt_hard_r:
+			case breakpointType_hard_r:
 				printf("%14s  |" , "硬件读断点");
 				break;
-			case e_bt_hard_w:
+			case breakpointType_hard_w:
 				printf("%14s  |" , "硬件写断点");
 				break;
-			case e_bt_hard_e:
+			case breakpointType_hard_e:
 				printf("%14s  |" , "硬件执行断点");
 				break;
-			case e_bt_hard_rw:
+			case breakpointType_hard_rw:
 				printf("%14s  |" , "硬件读写断点");
 				break;
-			case e_bt_acc_r:
+			case breakpointType_acc_r:
 				printf("%14s  |" , "内存读断点");
 				break;
-			case e_bt_acc_w:
+			case breakpointType_acc_w:
 				printf("%14s  |" , "内存写断点");
 				break;
-			case e_bt_acc_e:
+			case breakpointType_acc_e:
 				printf("%14s  |" , "内存执行断点");
 				break;
-			case e_bt_soft:
+			case breakpointType_soft:
 				printf("%14s  |" , "软件断点");
 				break;
 			default:

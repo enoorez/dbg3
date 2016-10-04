@@ -5,21 +5,22 @@
 typedef enum
 {
 	e_bt_none = 0 ,
-	e_bt_tf ,/*单步断点*/
-	e_bt_soft ,/*软件断点*/
+	breakpointType_tf ,/*单步断点*/
+	breakpointType_soft ,/*软件断点*/
 	
-	e_bt_acc ,/*内存访问断点*/
-	e_bt_acc_e = e_bt_acc ,
-	e_bt_acc_r ,
-	e_bt_acc_w ,
-	e_bt_acc_rw,
+	breakpointType_acc ,/*内存访问断点*/
+	breakpointType_acc_e = breakpointType_acc ,
+	breakpointType_acc_r ,
+	breakpointType_acc_w ,
+	breakpointType_acc_rw,
 
-	e_bt_hard ,/*硬件断点*/
-	e_bt_hard_e = e_bt_hard ,
-	e_bt_hard_r ,
-	e_bt_hard_w ,
-	e_bt_hard_rw
+	breakpointType_hard ,/*硬件断点*/
+	breakpointType_hard_e = breakpointType_hard ,
+	breakpointType_hard_r ,
+	breakpointType_hard_w ,
+	breakpointType_hard_rw
 }E_BPType;
+
 
 class BPObject
 {

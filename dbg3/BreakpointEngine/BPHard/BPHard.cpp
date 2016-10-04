@@ -52,7 +52,7 @@ bool BPHard::Install()
 			pDbgReg7->LEN0 = 0;
 
 			// 根据断点的来设置RW寄存器
-			if(m_eType == e_bt_hard_e)
+			if(m_eType == breakpointType_hard_e)
 				pDbgReg7->RW0 = 0; // 执行断点
 			else // 读写断点
 			{
@@ -66,7 +66,7 @@ bool BPHard::Install()
 			pDbgReg7->G1 = 0;
 			pDbgReg7->L1 = 1;
 			pDbgReg7->LEN1 =0;
-			if(m_eType == e_bt_hard_e)
+			if(m_eType == breakpointType_hard_e)
 				pDbgReg7->RW1 = 0;
 			else
 			{
@@ -80,7 +80,7 @@ bool BPHard::Install()
 			pDbgReg7->G2 = 0;
 			pDbgReg7->L2 = 1;
 			pDbgReg7->LEN2 = 0;
-			if(m_eType == e_bt_hard_e)
+			if(m_eType == breakpointType_hard_e)
 				pDbgReg7->RW2 = 0;
 			else
 			{
@@ -94,7 +94,7 @@ bool BPHard::Install()
 			pDbgReg7->G3 = 0;
 			pDbgReg7->L3 = 1;
 			pDbgReg7->LEN3 = 0;
-			if(m_eType == e_bt_hard_e)
+			if(m_eType == breakpointType_hard_e)
 				pDbgReg7->RW3 = 0;
 			else
 			{
@@ -176,45 +176,45 @@ bool BPHard::IsMe(const EXCEPTION_DEBUG_INFO& ExcDebInf)const
 		{
 			if(pDr7->RW0 == 0)
 			{
-				if(m_eType == e_bt_hard_e)
+				if(m_eType == breakpointType_hard_e)
 					return (LPVOID)ct.Dr0 == ExcDebInf.ExceptionRecord.ExceptionAddress;
 				else
 					return false;
 			}
-			return m_eType != e_bt_hard_e;
+			return m_eType != breakpointType_hard_e;
 		}
 		else if(pDr6->B1)
 		{
 			if(pDr7->RW1 == 0)
 			{
-				if(m_eType == e_bt_hard_e)
+				if(m_eType == breakpointType_hard_e)
 					return (LPVOID)ct.Dr1 == ExcDebInf.ExceptionRecord.ExceptionAddress;
 				else
 					return false;
 			}
-			return m_eType != e_bt_hard_e;
+			return m_eType != breakpointType_hard_e;
 		}
 		else if(pDr6->B2)
 		{
 			if(pDr7->RW2 == 0)
 			{
-				if(m_eType == e_bt_hard_e)
+				if(m_eType == breakpointType_hard_e)
 					return (LPVOID)ct.Dr2 == ExcDebInf.ExceptionRecord.ExceptionAddress;
 				else
 					return false;
 			}
-			return m_eType != e_bt_hard_e;
+			return m_eType != breakpointType_hard_e;
 		}
 		else if(pDr6->B3)
 		{
 			if(pDr7->RW3 == 0)
 			{
-				if(m_eType == e_bt_hard_e)
+				if(m_eType == breakpointType_hard_e)
 					return (LPVOID)ct.Dr3 == ExcDebInf.ExceptionRecord.ExceptionAddress;
 				else
 					return false;
 			}
-			return m_eType != e_bt_hard_e;
+			return m_eType != breakpointType_hard_e;
 		}
 	}
 	return false;

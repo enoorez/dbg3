@@ -39,7 +39,6 @@ int main()
 	cout << "\t\t---< 按h查看完整命令 >---\n";
 
 
-
 	DbgEngine		dbgEng; // 调试器引擎对象
 
 	// 注册断点处理的回调函数
@@ -286,7 +285,7 @@ unsigned int __stdcall DebugEvent(void* uParam)
 			case 't': // 步入
 			{
 				// 使用调试器引擎的函数来添加一个TF断点
-				BPObject *pBp = pDbg->AddBreakPoint(0 , e_bt_tf);
+				BPObject *pBp = pDbg->AddBreakPoint(0 , breakpointType_tf);
 				if(pBp == nullptr)
 					return 0;
 
@@ -313,13 +312,13 @@ unsigned int __stdcall DebugEvent(void* uParam)
 				pDbg->ReadMemory(uEip , c , 2);
 				DWORD dwCodeLen = 5;
 				/**
-				* call 的机器码有:
-				* 0xe8 : 5byte,
-				* 0x9a : 7byte,
-				* 0xff :
-				*	 0x10ff ~ 0x1dff
-				* rep 前缀的指令也可以步过
-				*/
+				　* call 的机器码有:
+				　* 0xe8 : 5byte,
+				　* 0x9a : 7byte,
+				　* 0xff :
+				　*	 0x10ff ~ 0x1dff
+				　* rep 前缀的指令也可以步过
+				　*/
 				if(c[ 0 ] == 0xe8/*call*/
 				   || c[ 0 ] == 0xf3/*rep*/
 				   || c[ 0 ] == 0x9a/*call*/
@@ -327,10 +326,10 @@ unsigned int __stdcall DebugEvent(void* uParam)
 				   )
 				{
 					dwCodeLen = disAsm.getCoodeLen(uEip);
-					pBp = pDbg->AddBreakPoint(uEip + dwCodeLen , e_bt_soft);
+					pBp = pDbg->AddBreakPoint(uEip + dwCodeLen , breakpointType_soft);
 				}
 				else
-					pBp=pDbg->AddBreakPoint(0 , e_bt_tf);
+					pBp=pDbg->AddBreakPoint(0 , breakpointType_tf);
 
 				if(pBp == nullptr)
 					return 0;
@@ -415,9 +414,9 @@ unsigned int __stdcall DebugEvent(void* uParam)
 						}
 						switch(*pType) // 筛选断点的类型
 						{
-							case 'r':bpType = cType == 'm' ? e_bt_acc_r : e_bt_hard_r; break;
-							case 'w':bpType = cType == 'm' ? e_bt_acc_w: e_bt_hard_w; break;
-							case 'e':bpType = cType == 'm' ? e_bt_acc_e: e_bt_hard_e; break;
+							case 'r':bpType = cType == 'm' ? breakpointType_acc_r : breakpointType_hard_r; break;
+							case 'w':bpType = cType == 'm' ? breakpointType_acc_w: breakpointType_hard_w; break;
+							case 'e':bpType = cType == 'm' ? breakpointType_acc_e: breakpointType_hard_e; break;
 							default:
 								printf("访问断点的类型有: r(读),w(写),e(执行)\n");
 								continue;// 结束本次while循环
@@ -432,8 +431,8 @@ unsigned int __stdcall DebugEvent(void* uParam)
 					}
 					case 'p':/*普通断点*/
 					{
- 						bpType = e_bt_soft;
-						// 地址 条件						
+ 						bpType = breakpointType_soft;
+						// 地址 条件
 						p = SkipSpace(p + 1);
 						pRule = GetSecondArg(p);
 

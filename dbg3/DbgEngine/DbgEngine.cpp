@@ -16,6 +16,7 @@ E_Status DbgEngine::Exec()
 	DWORD dwStatus = 0;
 	BOOL bRet = 0;
 
+	// 等待调试事件
 	bRet = WaitForDebugEvent(&dbgEvent , 30);
 	if(bRet == FALSE)
 		return e_s_sucess;
@@ -28,19 +29,19 @@ E_Status DbgEngine::Exec()
 	CloseHandle(m_hCurrThread);
 	m_hCurrThread = m_hCurrProcess = 0;
 	// 获取本轮异常使用到的句柄
-	m_hCurrProcess = OpenProcess(0xFFFF ,
+	m_hCurrProcess = OpenProcess(PROCESS_ALL_ACCESS,/*所有权限*/
 								 FALSE ,
 								 m_pid
 								 );
-	m_hCurrThread = OpenThread(0xFFFF ,
+	m_hCurrThread = OpenThread(THREAD_ALL_ACCESS,
 							   FALSE ,
 							   m_tid
 							   );
 	dwStatus = DBG_CONTINUE;
-	// 筛选异常
+	// 分析调试事件
 	switch(dbgEvent.dwDebugEventCode)
 	{
-		case EXCEPTION_DEBUG_EVENT:
+		case EXCEPTION_DEBUG_EVENT: /*异常调试事件*/
 		{
 			if(bIsSystemBreakpoint)
 			{
@@ -49,7 +50,7 @@ E_Status DbgEngine::Exec()
 
 				bIsSystemBreakpoint = false;
 				// 在OEP处下断
-				AddBreakPoint(m_oep , e_bt_soft)->SetCondition(true);
+				AddBreakPoint(m_oep , breakpointType_soft)->SetCondition(true);
 				if(m_bStopOnSystemBreakpoint)
 				{
 					//调用处理断点的回调函数
@@ -63,6 +64,7 @@ E_Status DbgEngine::Exec()
 			ReInstallBreakpoint();
 
 			// 根据异常信息查找断点
+			
 			BpItr itr = FindBreakpoint(dbgEvent.u.Exception);
 			// 判断迭代器是否有效, 如果无效,说明没有对应的断点
 			if(IsInvalidIterator(itr))
@@ -78,26 +80,23 @@ E_Status DbgEngine::Exec()
 			}
 			break;
 		}
-		case CREATE_PROCESS_DEBUG_EVENT:
+		
+		case CREATE_PROCESS_DEBUG_EVENT: /*创建进程事件*/
 			// 保存oep和加载基址
 			m_oep = (uaddr)dbgEvent.u.CreateProcessInfo.lpStartAddress;
 			m_imgBase = (uaddr)dbgEvent.u.CreateProcessInfo.lpBaseOfImage;
-			m_hCurrProcess = dbgEvent.u.CreateProcessInfo.hProcess;
 
-			AddProcess(dbgEvent.u.CreateProcessInfo.hProcess ,
-					   dbgEvent.u.CreateProcessInfo.hThread);
+			//AddProcess(dbgEvent.u.CreateProcessInfo.hProcess ,
+			//		   dbgEvent.u.CreateProcessInfo.hThread);
 			break;
-		case CREATE_THREAD_DEBUG_EVENT:
+		case CREATE_THREAD_DEBUG_EVENT:/*创建线程事件*/
 			//AddThread(dbgEvent.u.CreateThread.hThread);
 			break;
-		case EXIT_PROCESS_DEBUG_EVENT:
+		case EXIT_PROCESS_DEBUG_EVENT:/*进程退出事件*/
 			bIsSystemBreakpoint = true;
 			return e_s_processQuit;
 			break;
 		case EXIT_THREAD_DEBUG_EVENT:
-		{
-			int n = 0;
-		}
 			break;
 		case LOAD_DLL_DEBUG_EVENT:
 			break;

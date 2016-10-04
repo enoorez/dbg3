@@ -114,7 +114,7 @@ int DisAsmEngine::diAsm(const SIZE_T lpAddress,CString& strOpCode,CString& strAs
 	// 软件断点上有0xcc,不是正确的opcode,
 	// 判断这个地址上有没有软件断点,有则将原来的数据保存到缓冲区的首字节
 	// 否则无法正常反汇编
-	BPObject* pBP = m_BPEngine->FindBreakpoint((uaddr)lpAddress,e_bt_soft);
+	BPObject* pBP = m_BPEngine->FindBreakpoint((uaddr)lpAddress,breakpointType_soft);
 	if(pBP!=NULL)
 	{
 		*lpRemote_Buf = *(char*)&((BPSoft*)pBP)->m_uData;

@@ -82,7 +82,7 @@ bool BPSoft::Remove()
 
 E_BPType BPSoft::Type()const
 {
-	return e_bt_soft;
+	return breakpointType_soft;
 }
 
 bool BPSoft::IsMe(const EXCEPTION_DEBUG_INFO& ExcDebInf)const

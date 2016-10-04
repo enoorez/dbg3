@@ -71,7 +71,7 @@ bool BPTF::IsMe(const EXCEPTION_DEBUG_INFO& ExcDebInf)const
 
 E_BPType BPTF::Type()const
 {
-	return e_bt_tf;
+	return breakpointType_tf;
 }
 
 bool BPTF::NeedRemove() const
@@ -81,5 +81,6 @@ bool BPTF::NeedRemove() const
 
 void BPTF::ConverToUserBreakpoint()
 {
+	Install();
 	m_bIsUserBP = true;
 }
