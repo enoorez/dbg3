@@ -154,42 +154,42 @@ bool DbgObject::RemoveProcess(HANDLE hProcess)
 void DbgObject::GetModuleList(list<MODULEFULLINFO>& moduleList)
 {
 	// 枚举进程模块
-	DWORD dwNeed = 0;
-	EnumProcessModulesEx(m_hCurrProcess , 
-						 nullptr , 
-						 0 , 
-						 &dwNeed , 
-						 LIST_MODULES_ALL);
-	DWORD	dwModuleCount = dwNeed / sizeof(HMODULE);
-	HMODULE *phModule = new HMODULE[ dwModuleCount ];
-	EnumProcessModulesEx(m_hCurrProcess , 
-						 phModule , 
-						 dwNeed , 
-						 &dwNeed , 
-						 LIST_MODULES_ALL);
-
-	MODULEINFO		moif = { 0 };
-	char path[ MAX_PATH ];
-	moduleList.resize(dwModuleCount);
-	list<MODULEFULLINFO>::iterator itr = moduleList.begin();
-	// 循环获取模块信息
-	for(SIZE_T i = 0; i < dwModuleCount; ++i)
-	{
-		// 获取模块路径
-		GetModuleFileNameExA(m_hCurrProcess ,
-							 phModule[ i ] , 
-							 path , 
-							 MAX_PATH);
-
-		// 获取模块其他信息
-		GetModuleInformation(m_hCurrProcess , 
-							 phModule[ i ] , 
-							 &moif , sizeof(MODULEINFO));
-		itr->name = PathFindFileNameA(path);
-		itr->uStart = (LONG64)moif.lpBaseOfDll; // dll 基址
-		itr->uSize = moif.SizeOfImage; // dll 大小
-		++itr;
-	}
-
-	delete[] phModule;
+	 DWORD dwNeed = 0;
+	 EnumProcessModulesEx(m_hCurrProcess , 
+	 					 nullptr , 
+	 					 0 , 
+	 					 &dwNeed , 
+	 					 LIST_MODULES_ALL);
+	 DWORD	dwModuleCount = dwNeed / sizeof(HMODULE);
+	 HMODULE *phModule = new HMODULE[ dwModuleCount ];
+	 EnumProcessModulesEx(m_hCurrProcess , 
+	 					 phModule , 
+	 					 dwNeed , 
+	 					 &dwNeed , 
+	 					 LIST_MODULES_ALL);
+	 
+	 MODULEINFO		moif = { 0 };
+	 char path[ MAX_PATH ];
+	 moduleList.resize(dwModuleCount);
+	 list<MODULEFULLINFO>::iterator itr = moduleList.begin();
+	 // 循环获取模块信息
+	 for(SIZE_T i = 0; i < dwModuleCount; ++i)
+	 {
+	 	// 获取模块路径
+	 	GetModuleFileNameExA(m_hCurrProcess ,
+	 						 phModule[ i ] , 
+	 						 path , 
+	 						 MAX_PATH);
+	 
+	 	// 获取模块其他信息
+	 	GetModuleInformation(m_hCurrProcess , 
+	 						 phModule[ i ] , 
+	 						 &moif , sizeof(MODULEINFO));
+	 	itr->name = PathFindFileNameA(path);
+	 	itr->uStart = (LONG64)moif.lpBaseOfDll; // dll 基址
+	 	itr->uSize = moif.SizeOfImage; // dll 大小
+	 	++itr;
+	 }
+	 
+	 delete[] phModule;
 }
