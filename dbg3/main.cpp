@@ -188,7 +188,7 @@ unsigned int __stdcall DebugEvent(void* uParam)
 				// 获取开始地址
 				XEDPARSE xpre = { 0 };
 				xpre.x64 = false; // 是否转换成64位的opCode
-
+				memset(xpre.dest , 0x90 , XEDPARSE_MAXASMSIZE);
 				pCmdLine = SkipSpace(pCmdLine + 1);
 				if(*pCmdLine == 0)
 				{
@@ -205,7 +205,7 @@ unsigned int __stdcall DebugEvent(void* uParam)
 					cin.getline(xpre.instr , XEDPARSE_MAXBUFSIZE);
 					if(strcmp(xpre.instr , "quit") == 0)
 						break;
-					
+					DWORD uLen = disAsm.getCoodeLen(address);
 					xpre.cip = address;// 指令所在的地址
 					if(false == XEDParseAssemble(&xpre))
 					{
@@ -213,7 +213,7 @@ unsigned int __stdcall DebugEvent(void* uParam)
 						continue;// 结束本次while循环
 					}
 					// 将代码写入到目标进程
-					if(!pDbg->WriteMemory(address , xpre.dest , xpre.dest_size))
+					if(!pDbg->WriteMemory(address , xpre.dest , uLen))
 						continue;// 结束本次while循环
 					// 地址++
 					address += xpre.dest_size;

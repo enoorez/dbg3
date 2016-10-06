@@ -32,4 +32,6 @@ public:
 	virtual	E_BPType Type()const;
 	// 判断断点是否是自己
 	virtual bool IsMe(const EXCEPTION_DEBUG_INFO& ExcDebInfconst)const;
+
+	virtual bool NeedRemove()const;
 };

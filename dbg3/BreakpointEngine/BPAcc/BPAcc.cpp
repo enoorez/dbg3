@@ -29,14 +29,13 @@ bool BPAcc::Install()
 {
 	if(m_uLen >= 0x1000)
 		return false;
-
-	uaddr uAligAddr = ToAligentSize(m_uAddress + m_uLen , 0x1000);
+	uaddr uPageBase = (uPageBase & 0xFFFFF000);
 
 	DWORD	dwTemp = 0;
-	if(uAligAddr > ToAligentSize(m_uAddress , 0x1000))
+	if(uPageBase > ToAligentSize(m_uAddress , 0x1000))
 	{
 		dwTemp = VirtualProtectEx(m_dbgObj.m_hCurrProcess ,
-								  (LPVOID)uAligAddr ,
+								  (LPVOID)uPageBase ,
 								  0x1000 ,
 								  PAGE_NOACCESS ,
 								  &m_oldProtect2
@@ -56,14 +55,14 @@ bool BPAcc::Install()
 
 bool BPAcc::Remove()
 {
-	uaddr uAligAddr = ToAligentSize(m_uAddress + m_uLen , 0x1000);
+	uaddr uPageBase = (m_uAddress & 0xFFFFF000);
 
 	DWORD	dwTemp = 0;
 	DWORD	dwOldProtect = 0;
-	if(uAligAddr > ToAligentSize(m_uAddress , 0x1000))
+	if(uPageBase > ToAligentSize(m_uAddress , 0x1000))
 	{
 		dwTemp = VirtualProtectEx(m_dbgObj.m_hCurrProcess ,
-								  (LPVOID)uAligAddr ,
+								  (LPVOID)uPageBase ,
 								  0x1000 ,
 								  m_oldProtect2 ,
 								  &dwOldProtect
@@ -91,12 +90,15 @@ bool BPAcc::IsHit()const
 		case breakpointType_acc_r:
 			if(m_currentHitAccType != 0)
 				return false;
+			break;
 		case breakpointType_acc_w:
 			if(m_currentHitAccType != 1)
 				return false;
+			break;
 		case breakpointType_acc_e:
 			if(m_currentHitAccType != 8)
 				return false;
+			break;
 	}
 
 
@@ -104,20 +106,19 @@ bool BPAcc::IsHit()const
 		Expression exp(&m_dbgObj);
 		return exp.getValue(m_condition) != 0;
 	}
-	else
-		return m_bOnce;
-	return false;
+	return true;
 }
 
 bool BPAcc::IsMe(const EXCEPTION_DEBUG_INFO& ExcDebInf)const
 {
-	*(DWORD*)m_currentHitAccType = ExcDebInf.ExceptionRecord.ExceptionInformation[ 0 ];
-	*(DWORD*)m_currentHitAddress = ExcDebInf.ExceptionRecord.ExceptionInformation[ 1 ];
+	*(DWORD*)&m_currentHitAccType = ExcDebInf.ExceptionRecord.ExceptionInformation[ 0 ];
+	*(DWORD*)&m_currentHitAddress = ExcDebInf.ExceptionRecord.ExceptionInformation[ 1 ];
 	
 	// 判断发生异常的地址
 	if(ExcDebInf.ExceptionRecord.ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
 	{
-		if(m_currentHitAddress >= m_uAddress && m_currentHitAddress <= m_uAddress + m_uLen)
+		DWORD dwPageBase = (m_uAddress & 0xFFFFF000);
+		if(m_currentHitAddress >= dwPageBase && m_currentHitAddress <= m_uAddress + m_uLen)
 			return true;
 	}
 	return false;
@@ -126,4 +127,10 @@ bool BPAcc::IsMe(const EXCEPTION_DEBUG_INFO& ExcDebInf)const
 E_BPType BPAcc::Type()const
 {
 	return m_eType;
+}
+
+
+bool BPAcc::NeedRemove() const
+{
+	return m_bOnce;
 }

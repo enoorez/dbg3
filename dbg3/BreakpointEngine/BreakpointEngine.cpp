@@ -97,7 +97,9 @@ bool BreakpointEngine::FixException(BpItr FindItr)
 		m_bpRecList.push_back(pBp);
 
 		// 插入tf断点,触发一个异常,用于恢复失效的断点
-		m_bpList.push_front(new BPTF(*this , false));
+		BPObject *pTf = new BPTF(*this , false);
+		pTf->Install();
+		m_bpList.push_front(pTf);
 	}
 
 	// 返回断点是否被命中
