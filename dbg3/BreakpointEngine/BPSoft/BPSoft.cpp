@@ -16,8 +16,8 @@ BPSoft::~BPSoft()
 bool BPSoft::Install()
 {
 	// 判断该内存地址是否具有可执行属性
-	if(IsBadCodePtr((FARPROC)m_uAddress))
-		return false;
+	//if(IsBadCodePtr((FARPROC)m_uAddress))
+	//	return false;
 
 	// 将断点地址处的1字节内容保存
 	// 将0xcc写入到断点地址处

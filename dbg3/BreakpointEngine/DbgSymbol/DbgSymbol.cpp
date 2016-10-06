@@ -50,6 +50,7 @@ BOOL DbgSymbol::GetFunctionName(HANDLE hProcess , SIZE_T nAddress , CString& str
 
 	if(!SymFromAddr(hProcess , nAddress , &dwDisplacement , pSymbol))
 		return FALSE;
+	
 	strName = pSymbol->Name;
 	return TRUE;
 }
