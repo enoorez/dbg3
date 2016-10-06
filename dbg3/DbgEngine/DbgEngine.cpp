@@ -47,10 +47,17 @@ E_Status DbgEngine::Exec()
 			{
 				// 初始化符号服务器
 				BreakpointEngine::InitSymbol(m_hCurrProcess);
-
 				bIsSystemBreakpoint = false;
+
 				// 在OEP处下断
-				AddBreakPoint(m_oep , breakpointType_soft)->SetCondition(true);
+				BPObject* pBp = AddBreakPoint(m_oep , breakpointType_soft);
+				if(pBp == nullptr)
+				{
+					TerminateProcess(m_hCurrProcess , 0);
+					return e_s_processQuit;
+				}
+				pBp->SetCondition(true);
+
 				if(m_bStopOnSystemBreakpoint)
 				{
 					//调用处理断点的回调函数
