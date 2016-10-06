@@ -27,6 +27,22 @@ BPAcc::~BPAcc()
 
 bool BPAcc::Install()
 {
+	switch(m_eType)
+	{
+		case breakpointType_acc_e:
+			// 判断该内存地址是否具有可执行属性
+			if(IsBadCodePtr((FARPROC)m_uAddress))
+				return false;
+		case breakpointType_acc_rw:
+		case breakpointType_acc_r:
+			// 判断该内存地址是否具有可执行属性
+			if(IsBadReadPtr((VOID*)m_uAddress , m_uLen))
+				return false;
+		case breakpointType_acc_w:
+			if(IsBadWritePtr((VOID*)m_uAddress , m_uLen))
+				return false;
+	}
+
 	if(m_uLen >= 0x1000)
 		return false;
 

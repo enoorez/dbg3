@@ -24,8 +24,7 @@ BpItr BreakpointEngine::FindBreakpoint(const EXCEPTION_DEBUG_INFO& ExceptionInfo
 		i != m_bpList.end();
 		++i)
 	{
-		// 利用断点对象自己提供的方法来判断
-		// 异常信息是否对应这个断点
+		// 利用断点对象自己提供的方法来判断异常信息是否是由该断点产生的
 		if((*i)->IsMe(ExceptionInfo))
 			return i;
 	}
@@ -132,7 +131,7 @@ BPObject* BreakpointEngine::AddBreakPoint(uaddr uAddress , E_BPType eType , uint
 {
 	// 添加断点
 	BPObject	*pBp = nullptr;
-
+	
 	// 判断是否含有重复断点
 	pBp = CheckRepeat(uAddress , eType);
 	if(pBp!=nullptr) // 有重复的TF断点
@@ -158,7 +157,10 @@ BPObject* BreakpointEngine::AddBreakPoint(uaddr uAddress , E_BPType eType , uint
 	else
 		return nullptr;
 	if(pBp->Install() == false)
+	{
+		delete pBp;
 		return false;
+	}
 
 	// 将断点插入到断点链表中
 	m_bpList.push_front(pBp);

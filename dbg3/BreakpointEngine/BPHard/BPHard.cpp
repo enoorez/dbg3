@@ -19,6 +19,19 @@ BPHard::~BPHard()
 bool BPHard::Install()
 {
 	CONTEXT ct = { CONTEXT_DEBUG_REGISTERS };
+	switch(m_eType)
+	{
+		case breakpointType_hard_e:
+			if(IsBadCodePtr((FARPROC)m_uAddress))
+				return false;
+		case breakpointType_hard_rw:
+		case breakpointType_hard_r:
+			if(IsBadReadPtr((VOID*)m_uAddress,m_uLen))
+				return false;
+		case breakpointType_hard_w:
+			if(IsBadWritePtr((VOID*)m_uAddress , m_uLen))
+				return false;
+	}
 
 	// 为所有线程的线程设置硬件断点
 	for(auto& i : m_dbgObj.m_hThreadList)
