@@ -568,17 +568,20 @@ void SetBreakpoint(DbgEngine* pDbg ,DbgUi* pUi , char* szCmdLine)
 			if(uBPLen == 0)
 				uBPLen = 1;
 
-			if(pLen == 0 && cType == 'h')
+			if(pLen == 0 && cType == 'h') //如果是硬件断点,则将长度设为0
 				pLen = "0";
-			else if(pLen > 0 && cType == 'h')
+			else if(pLen > 0 && cType == 'h') // 检测硬件断点地址和长度的对应关系
 			{
-				if(*pType == 'e')
+				if(*pType == 'e') // 如果是执行断点,长度只能为0
 					uBPLen = 0;
-				else
+				else // 如果是读写断点,断点地址和长度必须满足对应关系
 				{
+					// 默认长度为4个字节
 					uBPLen = 3;
+					// 如果长度是4 , 但地址并不是4的倍数,则断点长度做多是2个字节
 					if(*pLen == '4' && uAddr % 4 != 0)
 						uBPLen = 1;
+					// 如果长度是2 , 但地址并不是2的倍数,则断点长度最多是1个字节
 					if(*pLen == '2' && uAddr % 2 != 0)
 						uBPLen = 0;
 				}

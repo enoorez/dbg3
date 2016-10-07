@@ -595,6 +595,9 @@ bool Expression::getValue(SSIZE_T& uValue , const char* pStr , const char** pEnd
 
 SSIZE_T Expression::getValue(const char* pStr)
 {
+	if(pStr == nullptr)
+		return 0;
+
 	const char* pEnd = pStr;
 	SSIZE_T uValue = 0;
 	if(getValue(uValue , pStr , &pEnd , 9))

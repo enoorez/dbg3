@@ -449,11 +449,14 @@ void DbgUi::showBreakPointList(list<BPObject*>::const_iterator beginItr ,
 	{
 		E_BPType Type = (*beginItr)->Type();
 		if(Type == breakpointType_tf)
+		{
+			++j;
 			continue;
+		}
 
 		printf("%5d |" , j++);
 		printf(" 0x%08X |" , (*beginItr)->GetAddress());
-
+		const char* pCondition = nullptr;
 		switch(Type)
 		{
 			case breakpointType_hard_r:
@@ -483,7 +486,8 @@ void DbgUi::showBreakPointList(list<BPObject*>::const_iterator beginItr ,
 			default:
 				printf("%14s  |" , "无类型");
 		}
-		printf(" %s\n" , (*beginItr)->GetCondition());
+		pCondition = (*beginItr)->GetCondition();
+		printf(" %s\n" , pCondition==nullptr?"无":pCondition);
 	}
 	printf("------+------------+----------------+---------------\n");
 }
