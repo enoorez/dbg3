@@ -28,12 +28,21 @@ void showHelp();
 char* GetSecondArg(char* pBuff);
 inline char* SkipSpace(char* pBuff);
 
+
+
 // 调试器引擎的断点处理回调函数
 // 断点被命中时,调试器引擎会调用此函数
 unsigned int __stdcall DbgBreakpointEvent(void* uParam);
 unsigned int __stdcall OtherDbgBreakpointEvent(void* uParam);
 
+
+// 获取命令行中的参数
+void GetCmdLineArg(char* pszCmdLine , int nArgCount , ...);
+// 设置断点
+void SetBreakpoint(DbgEngine* pDbg , DbgUi* pUi , char* szCmdLine);
 DWORD	g_dwProcessStatus = 0;
+
+
 int main()
 {
 	// 设置代码页,以支持中文
@@ -66,7 +75,6 @@ int main()
 		}
 		cout << "调试进程创建成功, 可以进行调试\n";
 		g_dwProcessStatus = 0;
-		 
 		tid=_beginthreadex(0 , 0 , DbgBreakpointEvent , &dbgEng , 0 , &taddr);
 		while(1)
 		{
@@ -145,7 +153,6 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 			ShowAsm(*pDbg , ui , disAsm , 20 , ct.Eip);
 			dwStatus = 1;
 		}
-
 		if(dwStatus)
 		{
 			printf("%s>" , dwStatus == 1 ? "暂停中" : "运行中");
@@ -184,38 +191,23 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 			/*查看反汇编*/
 			case 'u': // 查看反汇编
 			{
-				// 格式: u 地址(可选) 行数(可选)
-				SIZE_T  uAddr = 0;
-				DWORD	dwLineCount = 0;
-
-				// 判断是否是只有u没有其他参数
-				if(pCmdLine[ 1 ] == 0 || pCmdLine[ 2 ] == 0) // if(strlen(szCmdLine) < 2)
-				{
-					// 设置默认的反汇编地址和反汇编指令数量
-					pDbg->GetRegInfo(ct);
-					uAddr = ct.Eip;
-					dwLineCount = 10;
-				}
-				else // 至少包含一个参数时
-				{
-					char* pAddress = SkipSpace(pCmdLine + 1);
-					char* pLineCount = GetSecondArg(pAddress);
-					// 使用表达式模块获取值以获取反汇编地址
-					uAddr = exp.getValue(pAddress);
-					// 获取反汇编指令数量
-					dwLineCount = exp.getValue(pLineCount);
-					// 如果没有行数,则默认显示10行
-					dwLineCount = dwLineCount == 0 ? 10 : dwLineCount;
-				}
+				dwStatus = 1;
+				char *pAddr = 0;
+				char* pLineCount = 0;
+				GetCmdLineArg(pCmdLine + 1 ,2, &pAddr , &pLineCount);
+				if(pAddr == nullptr)
+					pAddr = "eip";
+				if(pLineCount == nullptr)
+					pLineCount = "20";
 				// 显示反汇编
-				ShowAsm(*pDbg , ui , disAsm , dwLineCount , uAddr);
+				ShowAsm(*pDbg , ui , disAsm , exp.getValue(pLineCount) , exp.getValue(pAddr));
 				break;
 			}
 			
 			/*输入汇编*/
 			case 'a': /*汇编*/
 			{
-				
+				dwStatus = 1;
 				// 获取开始地址
 				XEDPARSE xpre = { 0 };
 				xpre.x64 = false; // 是否转换成64位的opCode
@@ -255,6 +247,7 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 			/*查看栈*/
 			case 'k':
 			{
+				dwStatus = 1;
 				pDbg->GetRegInfo(ct);
 				BYTE	buff[ sizeof(SIZE_T) * 20 ];
 				pDbg->ReadMemory(ct.Esp , buff , sizeof(SIZE_T) * 20);
@@ -264,6 +257,7 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 			/*查看和修改寄存器*/
 			case 'r':/*寄存器读写*/
 			{
+				dwStatus = 1;
 				// 获取寄存器的值:
 				// r 寄存器名 
 				// 设置寄存器的值
@@ -288,6 +282,7 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 			/*查看内存*/
 			case 'd':/*查看数据*/
 			{
+				dwStatus = 1;
 				char *p = &szCmdLine[ 1 ];
 				// 筛选数据格式
 				switch(*p)
@@ -320,12 +315,10 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 				BPObject *pBp = pDbg->AddBreakPoint(0 , breakpointType_tf);
 				if(pBp == nullptr)
 					return 0;
-
-				// 获取条件
-				char* pCondition = SkipSpace(pCmdLine + 1);
-
+				char* pCondition = 0;
+				GetCmdLineArg(pCmdLine + 1 , 1 , &pCondition);
 				// 设置断点的中断条件
-				if(*pCondition != 0)
+				if(pCondition != 0)
 				{
 					pBp->SetCondition(pCondition);
 				}
@@ -381,6 +374,7 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 			/*查看加载的模块*/
 			case 'm':
 			{
+				dwStatus = 1;
 				if(*SkipSpace(pCmdLine + 1) == 'l')
 				{
 					list<MODULEFULLINFO> modList;
@@ -399,107 +393,18 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 			/*设置断点*/
 			case 'b':/*下断*/
 			{
-				char* p = SkipSpace(szCmdLine + 1);
-				E_BPType bpType = e_bt_none;
-				SIZE_T uAddr = 0; // 下断地址
-				char*  pRule = 0; // 断点命中规则
-				char   cType = *p;// 断点类型
-				uint   uBPLen = 0;
-				switch(cType)
-				{
-					case 'l':/*断点列表*/
-					{
-						ui.showBreakPointList(pDbg->GetBPListBegin() , pDbg->GetBPListEnd());
-						continue;// 结束本次while循环
-					}
-					case 'c':/*删除断点*/
-					{
-						DWORD	dwIndex = 0;
-						sscanf_s(szCmdLine + 2 , "%d" , &dwIndex);
-						pDbg->DeleteBreakpoint(dwIndex);
-						continue;// 结束本次while循环
-					}
-					case 'n':/*函数名断点*/
-					{
-						if(nullptr == pDbg->AddBreakPoint(SkipSpace(pCmdLine + 2)))
-							cout << "找不到符号\n";
-						cout << "设置成功!\n";
-						continue;// 结束本次while循环
-					}
-					case 'h':/*硬件断点*/
-					case 'm': /*内存访问断点*/
-					{
-						uBPLen = 1;
-						// 得到地址
-						for(p = p + 1; *p == ' '; ++p);
-						char *pType = 0;
-
-						// 得到断点类型
-						pType = GetSecondArg(p);
-
-						// 通过表达式类的处理来获取地址
-						uAddr = exp.getValue(p);
-
-						// 判断有没有指定断点的类型:
-						if(*pType == 0)
-						{
-							printf("bm/bh 地址 类型(r/w/e) 条件(可选)\n");
-							continue;// 结束本次while循环
-						}
-						switch(*pType) // 筛选断点的类型
-						{
-							case 'r':bpType = cType == 'm' ? breakpointType_acc_r : breakpointType_hard_r; break;
-							case 'w':bpType = cType == 'm' ? breakpointType_acc_w: breakpointType_hard_w; break;
-							case 'e':bpType = cType == 'm' ? breakpointType_acc_e: breakpointType_hard_e; break;
-							default:
-								printf("访问断点的类型有: r(读),w(写),e(执行)\n");
-								continue;// 结束本次while循环
-						}
-						// 获取断点数据的长度
-						char* pLen = GetSecondArg(pType);
-						uBPLen = exp.getValue(pLen);
-
-						// 定位到条件表达式(第一个不是空格的地方)
-						pRule = SkipSpace(pLen + 1);
-						break;
-					}
-					case 'p':/*普通断点*/
-					{
- 						bpType = breakpointType_soft;
-						// 地址 条件
-						p = SkipSpace(p + 1);
-						pRule = GetSecondArg(p);
-
-						// 得到地址
-						uAddr = exp.getValue(p);
-						// 得到条件
-						pRule = SkipSpace(pRule);
-						break;
-					}
-					default: 
-						cout << "没有该类型的断点\n";
-						continue;// 结束本次while循环
-					
-				}
-
-				// 筛选完断点后, 进行下断.
-				BPObject* pBp = pDbg->AddBreakPoint(uAddr , bpType , uBPLen);
-				if(pBp == nullptr)
-				{
-					printf("设置断点失败\n");
-					continue;// 结束本次while循环
-				}
-				// 如果断点携带表达式, 则把表达式设置到断点上
-				if(*pRule != 0)
-					BreakpointEngine::SetExp(pBp , pRule);
+				dwStatus = 1;
+				SetBreakpoint(pDbg ,&ui , pCmdLine);
+				break;
 			}
-			break;
+
 			/*运行程序*/
 			case 'g':
 				pDbg->FinishBreakpointEvnet();
 				break;
 			/*查看帮助*/
 			case 'h':
+				dwStatus = 1;
 				showHelp();
 				break;;// 结束本次while循环
 		}
@@ -571,5 +476,129 @@ inline char* SkipSpace(char* pBuff)
 {
 	for(; *pBuff == ' ' || *pBuff == '\t' || *pBuff == '\r' || *pBuff == '\n' ; ++pBuff);
 	return pBuff;
+}
+
+void GetCmdLineArg(char* pszCmdLine, int nArgCount,...)
+{
+	va_list argptr;
+	va_start(argptr , nArgCount);
+	
+	while(nArgCount-- > 0 && *pszCmdLine != 0)
+	{
+		if(*pszCmdLine == ' ' || *pszCmdLine == '\t')
+			*pszCmdLine++ = 0;
+
+		pszCmdLine = SkipSpace(pszCmdLine);
+		if(*pszCmdLine == 0 )
+			break;
+		DWORD*& dwArg = va_arg(argptr , DWORD*);
+		*dwArg = (DWORD)pszCmdLine;
+
+		for(; *pszCmdLine != 0 && *pszCmdLine != ' ' && *pszCmdLine != '\t'; ++pszCmdLine);
+	}
+	va_end(argptr);
+}
+
+void SetBreakpoint(DbgEngine* pDbg ,DbgUi* pUi , char* szCmdLine)
+{
+	char* pAddr = 0;
+	char* pType = 0;
+	char* pLen = 0;
+	char* pRule = 0; // 断点命中规则
+	Expression exp(pDbg);
+
+	char		cType = *(SkipSpace(szCmdLine + 1));// 断点类型
+	E_BPType	bpType = e_bt_none;
+	SIZE_T		uAddr = 0; // 下断地址
+	uint		uBPLen = 1;
+	switch(cType)
+	{
+		case 'p':/*普通断点*/
+		{
+			char* pAddrr = 0 ;
+			bpType = breakpointType_soft;
+			GetCmdLineArg(szCmdLine + 2 , 2 , &pAddrr , &pRule);
+			if(pAddrr == nullptr)
+				pAddrr = "eip";
+			// 得到地址
+			uAddr = exp.getValue(pAddrr);
+			break;
+		}
+		case 'l':/*断点列表*/
+		{
+			pUi->showBreakPointList(pDbg->GetBPListBegin() , pDbg->GetBPListEnd());
+			return;
+		}
+		case 'c':/*删除断点*/
+		{
+			DWORD	dwIndex = 0;
+			sscanf_s(szCmdLine + 2 , "%d" , &dwIndex);
+			pDbg->DeleteBreakpoint(dwIndex);
+			return;
+		}
+		case 'n':/*函数名断点*/
+		{
+			if(nullptr == pDbg->AddBreakPoint(SkipSpace(szCmdLine + 2)))
+				cout << "找不到符号\n";
+			cout << "设置成功!\n";
+			return;
+		}
+		case 'h':/*硬件断点*/
+		case 'm': /*内存访问断点*/
+		{
+			GetCmdLineArg(szCmdLine + 2 , 4 , &pAddr , &pType , &pLen , &pRule);
+			if(pAddr == 0 || pType == 0)
+			{
+				printf("bm/bh 地址 类型(r/w/e) 长度(1/2/4)(可选) 条件(可选)\n");
+				return;
+			}
+
+			uAddr = exp.getValue(pAddr);
+			switch(*pType) // 筛选断点的类型
+			{
+				case 'r':bpType = cType == 'm' ? breakpointType_acc_r : breakpointType_hard_r; break;
+				case 'w':bpType = cType == 'm' ? breakpointType_acc_w : breakpointType_hard_w; break;
+				case 'e':bpType = cType == 'm' ? breakpointType_acc_e : breakpointType_hard_e; break;
+				default:
+					printf("断点类型设置错误,访问断点的类型有: r(读),w(写),e(执行)\n");
+					return;
+			}
+
+			uBPLen = exp.getValue(pLen);
+			if(uBPLen == 0)
+				uBPLen = 1;
+
+			if(pLen == 0 && cType == 'h')
+				pLen = "0";
+			else if(pLen > 0 && cType == 'h')
+			{
+				if(*pType == 'e')
+					uBPLen = 0;
+				else
+				{
+					uBPLen = 3;
+					if(*pLen == '4' && uAddr % 4 != 0)
+						uBPLen = 1;
+					if(*pLen == '2' && uAddr % 2 != 0)
+						uBPLen = 0;
+				}
+			}
+			break;
+		}
+		default:
+			cout << "没有该类型的断点\n";
+			return;
+	}
+	// 获取完断点的地址,类型,条件后, 进行下断.
+	BPObject* pBp = pDbg->AddBreakPoint(uAddr , bpType , uBPLen);
+	if(pBp == nullptr)
+	{
+		printf("设置断点失败\n");
+		return;
+	}
+	// 如果断点携带表达式, 则把表达式设置到断点上
+	if(pRule != nullptr)
+		BreakpointEngine::SetExp(pBp , pRule);
+	return;
 }
 
