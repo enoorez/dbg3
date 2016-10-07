@@ -4,6 +4,7 @@
 #include "BPAcc/BPAcc.h"
 
 BreakpointEngine::BreakpointEngine()
+	:m_pRecoveryBp(0)
 {
 }
 
@@ -94,7 +95,8 @@ bool BreakpointEngine::FixException(BpItr FindItr)
 
 		// 因为断点已经被移除, 断点已经失效,因此,需要恢复断点的有效性
 		// 将断点放入待恢复断点表中
-		m_bpRecList.push_back(pBp);
+		//m_bpRecList.push_back(pBp);
+		m_pRecoveryBp = pBp;
 
 		// 插入tf断点,触发一个异常,用于恢复失效的断点
 		BPObject *pTf = new BPTF(*this , false);
@@ -109,16 +111,10 @@ bool BreakpointEngine::FixException(BpItr FindItr)
 // 重新插入断点
 bool BreakpointEngine::ReInstallBreakpoint()
 {
-	if(m_bpRecList.empty())
+	if(m_pRecoveryBp == nullptr)
 		return false;
-	// 遍历链表
-	for(auto& i : m_bpRecList)
-	{
-		// 调用断点本身提供的方法去恢复断点的有效性
-		i->Install();
-	}
-	// 清空链表
-	m_bpRecList.clear();
+	m_pRecoveryBp->Install();
+	m_pRecoveryBp = nullptr;
 	return true; 
 }
 
@@ -191,7 +187,7 @@ void BreakpointEngine::Clear()
 		delete i;
 	}
 	m_bpList.clear();
-	m_bpRecList.clear();
+	m_pRecoveryBp = nullptr;
 
 }
 
@@ -209,6 +205,8 @@ bool BreakpointEngine::DeleteBreakpoint(uint uIndex)
 	{
 		if(uIndex-- == 0)
 		{
+			if(m_pRecoveryBp  == *i)
+				m_pRecoveryBp = nullptr;
 			delete *i;
 			m_bpList.erase(i);
 			return true;

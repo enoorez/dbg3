@@ -11,7 +11,7 @@ class BreakpointEngine : public DbgObject , public DbgSymbol
 {
 	
 	list<BPObject*>	m_bpList;	// 断点列表
-	list<BPObject*> m_bpRecList;// 待恢复的断点列表
+	BPObject*		m_pRecoveryBp;// 待恢复的断点
 public:
 	BreakpointEngine();
 	~BreakpointEngine();
