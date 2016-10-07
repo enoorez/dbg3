@@ -1,8 +1,11 @@
 #include "DbgEngine.h"
 #include "../dbgUi/dbgUi.h"
 
+
 DbgEngine::DbgEngine()
 {
+	m_hBreakpointEvent = CreateEvent(NULL , FALSE , FALSE , NULL);
+	m_hUserIputEvent = CreateEvent(NULL , FALSE,FALSE , NULL);
 }
 
 DbgEngine::~DbgEngine()
@@ -14,7 +17,7 @@ E_Status DbgEngine::Exec()
 	static bool bIsSystemBreakpoint = true;
 	DEBUG_EVENT dbgEvent = { 0 };
 	DWORD dwStatus = 0;
-	BOOL bRet = 0;
+	DWORD bRet = 0;
 
 	// 等待调试事件
 	bRet = WaitForDebugEvent(&dbgEvent , 30);
@@ -81,8 +84,10 @@ E_Status DbgEngine::Exec()
 				// 修复异常,如果能够成功修正断点, 则调用用户的处理函数
 				if(true == FixException(itr))
 				{
-					if(m_pfnBreakpointProc)
-						m_pfnBreakpointProc(this);
+					SetEvent(m_hBreakpointEvent);
+					WaitForSingleObject(m_hUserIputEvent,-1);
+					//if(m_pfnBreakpointProc)
+					//	m_pfnBreakpointProc(this);
 				}
 			}
 			break;
@@ -126,4 +131,15 @@ void DbgEngine::Close()
 {
 	DbgObject::Close();
 	BreakpointEngine::Clear();
+}
+
+
+BOOL DbgEngine::WaitForBreakpointEvent(DWORD nTime)
+{
+	return WaitForSingleObject(m_hBreakpointEvent , nTime) == WAIT_OBJECT_0;
+}
+
+void DbgEngine::FinishBreakpointEvnet()
+{
+	SetEvent(m_hUserIputEvent);
 }

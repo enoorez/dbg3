@@ -16,12 +16,11 @@ typedef enum
 	e_s_sucess = 0 ,
 	e_s_processQuit,
 }E_Status;
-
+#define BREAKPOINTEVENTNAME L"DBG3_DBGENGINE_EVNET"
 
 class DbgEngine;
 typedef uint(__stdcall* fnExceptionProc)(DbgEngine* pDbg);
 typedef DWORD(__stdcall *fnOtherException)(const EXCEPTION_DEBUG_INFO& exceptionInfo);
-
 
 class DbgEngine : public BreakpointEngine
 {
@@ -33,9 +32,15 @@ public:
 public:
 	fnExceptionProc m_pfnBreakpointProc; // 断点处理函数
 	fnOtherException m_pfnOtherException; // 其他异常处理函数
+	HANDLE			m_hBreakpointEvent;
+	HANDLE			m_hUserIputEvent;
 public:
 	// 运行引擎
 	E_Status Exec();
 	void	 Close();
+
+	BOOL	WaitForBreakpointEvent(DWORD nTime);
+	void	FinishBreakpointEvnet();
+
 };
 
