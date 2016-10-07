@@ -78,16 +78,24 @@ E_Status DbgEngine::Exec()
 			BpItr itr = FindBreakpoint(dbgEvent.u.Exception);
 			// 判断迭代器是否有效, 如果无效,说明没有对应的断点
 			if(IsInvalidIterator(itr))
-				dwStatus = m_pfnOtherException?m_pfnOtherException(dbgEvent.u.Exception):DBG_EXCEPTION_HANDLED;
+			{
+				printf("\n>>>>>>> 目标进程自身触发了异常 <<<<<<\n");
+				// 设置断点事件为有信号状态
+				SetEvent(m_hBreakpointEvent);
+				// 等待用户输入完成的信号
+				WaitForSingleObject(m_hUserIputEvent , -1);
+				dwStatus = DBG_EXCEPTION_NOT_HANDLED;
+				//dwStatus = m_pfnOtherException ? m_pfnOtherException(dbgEvent.u.Exception) : DBG_EXCEPTION_HANDLED;
+			}
 			else
 			{
 				// 修复异常,如果能够成功修正断点, 则调用用户的处理函数
 				if(true == FixException(itr))
 				{
+					// 设置断点事件为有信号状态
 					SetEvent(m_hBreakpointEvent);
+					// 等待用户输入完成的信号
 					WaitForSingleObject(m_hUserIputEvent,-1);
-					//if(m_pfnBreakpointProc)
-					//	m_pfnBreakpointProc(this);
 				}
 			}
 			break;
@@ -97,12 +105,8 @@ E_Status DbgEngine::Exec()
 			// 保存oep和加载基址
 			m_oep = (uaddr)dbgEvent.u.CreateProcessInfo.lpStartAddress;
 			m_imgBase = (uaddr)dbgEvent.u.CreateProcessInfo.lpBaseOfImage;
-
-			//AddProcess(dbgEvent.u.CreateProcessInfo.hProcess ,
-			//		   dbgEvent.u.CreateProcessInfo.hThread);
 			break;
 		case CREATE_THREAD_DEBUG_EVENT:/*创建线程事件*/
-			//AddThread(dbgEvent.u.CreateThread.hThread);
 			break;
 		case EXIT_PROCESS_DEBUG_EVENT:/*进程退出事件*/
 			bIsSystemBreakpoint = true;
@@ -136,10 +140,12 @@ void DbgEngine::Close()
 
 BOOL DbgEngine::WaitForBreakpointEvent(DWORD nTime)
 {
+	// 等待断点事件的信号
 	return WaitForSingleObject(m_hBreakpointEvent , nTime) == WAIT_OBJECT_0;
 }
 
 void DbgEngine::FinishBreakpointEvnet()
 {
+	// 设置用户输入事件完成信号
 	SetEvent(m_hUserIputEvent);
 }
