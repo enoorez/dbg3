@@ -30,6 +30,8 @@ uaddr BPObject::GetAddress()const
 
 const char* BPObject::GetCondition() const
 {
+	if(m_condition.IsEmpty())
+		return nullptr;
 	return m_condition;
 }
 
