@@ -209,6 +209,7 @@ bool BreakpointEngine::DeleteBreakpoint(uint uIndex)
 	{
 		if(uIndex-- == 0)
 		{
+			delete *i;
 			m_bpList.erase(i);
 			return true;
 		}
