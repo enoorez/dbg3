@@ -26,7 +26,7 @@ bool BPTF::Install()
 	PEFLAGS pEflags = (PEFLAGS)&ct.EFlags;
 	pEflags->TF = 1;
 
-	// m_bOnce = true;
+	m_bOnce = m_condition.IsEmpty();
 	return m_dbgObj.SetRegInfo(ct);
 }
 
