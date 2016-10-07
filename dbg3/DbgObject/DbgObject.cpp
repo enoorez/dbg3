@@ -34,7 +34,7 @@ bool DbgObject::Open(const char* pszFile)
 						  NULL ,                   // 安全描述符
 						  NULL ,                   // 线程属性是否可继承
 						  FALSE ,                  // 否从调用进程处继承了句柄
-						  DEBUG_ONLY_THIS_PROCESS ,// 以调试的方式启动
+						  DEBUG_ONLY_THIS_PROCESS|CREATE_NEW_CONSOLE ,// 以调试的方式启动
 						  NULL ,                   // 新进程的环境块
 						  NULL ,                   // 新进程的当前工作路径（当前目录）
 						  &stcStartupInfo ,        // 指定进程的主窗口特性

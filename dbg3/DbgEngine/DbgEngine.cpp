@@ -40,6 +40,7 @@ E_Status DbgEngine::Exec()
 							   FALSE ,
 							   m_tid
 							   );
+
 	dwStatus = DBG_CONTINUE;
 	// 分析调试事件
 	switch(dbgEvent.dwDebugEventCode)
