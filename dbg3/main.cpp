@@ -31,7 +31,9 @@ inline char* SkipSpace(char* pBuff);
 // 调试器引擎的断点处理回调函数
 // 断点被命中时,调试器引擎会调用此函数
 unsigned int __stdcall DbgBreakpointEvent(void* uParam);
+unsigned int __stdcall OtherDbgBreakpointEvent(void* uParam);
 
+DWORD	g_dwProcessStatus = 0;
 int main()
 {
 	// 设置代码页,以支持中文
@@ -63,7 +65,8 @@ int main()
 			cout << "程序打开失败\n";
 		}
 		cout << "调试进程创建成功, 可以进行调试\n";
-
+		g_dwProcessStatus = 0;
+		 
 		tid=_beginthreadex(0 , 0 , DbgBreakpointEvent , &dbgEng , 0 , &taddr);
 		while(1)
 		{
@@ -73,7 +76,7 @@ int main()
 				dbgEng.Close();
 				system("cls");
 				cout << "进程已退出\n";
-				_endthreadex(tid);
+				g_dwProcessStatus = 1;
 				break;
 			}
 		}
@@ -167,8 +170,12 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 		pCmdLine = SkipSpace(szCmdLine);
 
 		// 判断是否需要退出调试器
-		if(*(DWORD*)pCmdLine == 'tixe')
-			exit(0);
+		if(*(DWORD*)pCmdLine == 'tixe' || g_dwProcessStatus == 1)
+		{
+			pDbg->Close();
+			pDbg->FinishBreakpointEvnet();
+			return 0;
+		} 
 
 
 		// 解析用户输入的命令
@@ -510,7 +517,7 @@ void showHelp()
 	printf("h : 查看帮助\n");
 	//printf("o : 打开调试进程\n");
 	//printf("    格式为: o 可执行程序路径\n");
-	printf("exit: 退出调试器\n");
+	printf("exit: 退出调试会话\n");
 	printf("ml: 显示模块列表\n");
 	printf("g : 运行程序\n");
 	printf("p : 单步\n");
@@ -565,3 +572,4 @@ inline char* SkipSpace(char* pBuff)
 	for(; *pBuff == ' ' || *pBuff == '\t' || *pBuff == '\r' || *pBuff == '\n' ; ++pBuff);
 	return pBuff;
 }
+
