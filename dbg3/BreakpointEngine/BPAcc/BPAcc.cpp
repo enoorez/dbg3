@@ -29,7 +29,7 @@ bool BPAcc::Install()
 {
 	if(m_uLen >= 0x1000)
 		return false;
-	uaddr uPageBase = (uPageBase & 0xFFFFF000);
+	uaddr uPageBase = (m_uAddress & 0xFFFFF000);
 
 	DWORD	dwTemp = 0;
 	if(uPageBase > ToAligentSize(m_uAddress , 0x1000))
