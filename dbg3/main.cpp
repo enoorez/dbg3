@@ -19,6 +19,7 @@
 #pragma comment(lib,"AssamblyEngine\\XEDParse.lib")
 
 #include <iostream>
+#include <conio.h>
 using namespace std;
 
 // 显示调试器命令行帮助信息
@@ -29,7 +30,7 @@ inline char* SkipSpace(char* pBuff);
 
 // 调试器引擎的断点处理回调函数
 // 断点被命中时,调试器引擎会调用此函数
-unsigned int __stdcall DebugEvent(void* uParam);
+unsigned int __stdcall DbgBreakpointEvent(void* uParam);
 
 int main()
 {
@@ -42,11 +43,12 @@ int main()
 	DbgEngine		dbgEng; // 调试器引擎对象
 
 	// 注册断点处理的回调函数
-	dbgEng.m_pfnBreakpointProc = (fnExceptionProc)DebugEvent;
+	dbgEng.m_pfnBreakpointProc = (fnExceptionProc)DbgBreakpointEvent;
 	
 	char szPath[ MAX_PATH ];
 	bool bCreateThread = false;
-
+	unsigned int taddr = 0;
+	uintptr_t	 tid = 0;
 	while(true)
 	{
 		while(true)
@@ -62,6 +64,7 @@ int main()
 		}
 		cout << "调试进程创建成功, 可以进行调试\n";
 
+		tid=_beginthreadex(0 , 0 , DbgBreakpointEvent , &dbgEng , 0 , &taddr);
 		while(1)
 		{
 			// 运行调试器,Exec不处于阻塞状态,因此需要放在while循环中.
@@ -70,6 +73,7 @@ int main()
 				dbgEng.Close();
 				system("cls");
 				cout << "进程已退出\n";
+				_endthreadex(tid);
 				break;
 			}
 		}
@@ -110,7 +114,7 @@ void ShowAsm(DbgEngine& dbgEngine,
 
 
 // 处理断点的回调函数
-unsigned int __stdcall DebugEvent(void* uParam)
+unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 {
 	DbgEngine* pDbg = (DbgEngine*)uParam;
 	DbgUi ui(pDbg);
@@ -122,24 +126,42 @@ unsigned int __stdcall DebugEvent(void* uParam)
 	vector<DISASMSTRUST> vecDisAsm;
 	char* pCmdLine = 0;
 
-	// 清屏
-	system("cls");
-	// 获取寄存器信息
-	pDbg->GetRegInfo(ct);
-	// 使用ui模块将寄存器信息输出
-	ui.showReg(ct);
-
-	// 输出反汇编
-	ShowAsm(*pDbg , ui , disAsm , 20 , ct.Eip);
-
+	
+	DWORD	dwStatus = 0;
 	while(1)
 	{
-		do
+		if(pDbg->WaitForBreakpointEvent(30))
 		{
-			cout <<  "> ";
-			// 接收用户输入的命令
-			gets_s(szCmdLine , 64);
-		} while(*szCmdLine == '\0');
+			// 清屏
+			system("cls");
+			// 获取寄存器信息
+			pDbg->GetRegInfo(ct);
+			// 使用ui模块将寄存器信息输出
+			ui.showReg(ct);
+			// 输出反汇编
+			ShowAsm(*pDbg , ui , disAsm , 20 , ct.Eip);
+			dwStatus = 1;
+		}
+
+		if(dwStatus)
+		{
+			printf("%s>" , dwStatus == 1 ? "暂停中" : "运行中");
+			dwStatus = FALSE;
+		}
+
+		if(_kbhit())
+		{
+			do
+			{
+				// 接收用户输入的命令
+				gets_s(szCmdLine , 64);
+			} while(*szCmdLine == '\0');
+			dwStatus = 2;
+		}
+		else
+		{
+			continue;
+		}
 
 		// 跳过行头空格
 		pCmdLine = SkipSpace(szCmdLine);
@@ -182,9 +204,11 @@ unsigned int __stdcall DebugEvent(void* uParam)
 				ShowAsm(*pDbg , ui , disAsm , dwLineCount , uAddr);
 				break;
 			}
+			
 			/*输入汇编*/
 			case 'a': /*汇编*/
 			{
+				
 				// 获取开始地址
 				XEDPARSE xpre = { 0 };
 				xpre.x64 = false; // 是否转换成64位的opCode
@@ -195,6 +219,7 @@ unsigned int __stdcall DebugEvent(void* uParam)
 					printf("指令格式错误, 格式为: a 地址\n");
 					continue;// 结束本次while循环
 				}
+				printf("输入quit退出汇编模式\n");
 				uaddr address = exp.getValue(pCmdLine);
 				if(address == 0)
 					continue;// 结束本次while循环
@@ -299,7 +324,8 @@ unsigned int __stdcall DebugEvent(void* uParam)
 				}
 				else
 					pBp->SetCondition(true);
-				return 0;
+				pDbg->FinishBreakpointEvnet();
+				break;
 			}
 			/*单步步过*/
 			case 'p': // 步过
@@ -342,7 +368,8 @@ unsigned int __stdcall DebugEvent(void* uParam)
 				else
 					pBp->SetCondition(true);
 
-				return 0;
+				pDbg->FinishBreakpointEvnet();
+				break;
 			}
 			/*查看加载的模块*/
 			case 'm':
@@ -462,13 +489,12 @@ unsigned int __stdcall DebugEvent(void* uParam)
 			break;
 			/*运行程序*/
 			case 'g':
-				return 0;
+				pDbg->FinishBreakpointEvnet();
+				break;
 			/*查看帮助*/
 			case 'h':
 				showHelp();
-				continue;// 结束本次while循环
-			default:
-				continue;// 结束本次while循环
+				break;;// 结束本次while循环
 		}
 	}
 	
