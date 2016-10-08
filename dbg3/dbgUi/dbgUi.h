@@ -34,8 +34,7 @@ public:
 	void Show(E_ShowType type , const CStringA& pszData);
 	void Show(const char* pszStr , int x , int y , int color);
 
-	// 格式: 颜色 字符串,颜色 , 字符串 .... ... 
-	// 以0结尾.
+	// 格式: 颜色1 ,字符串1,颜色2,字符串2 颜色X,字符串X(以0结尾.)
 	void ShowEx(int x , int y ,...);
 
 

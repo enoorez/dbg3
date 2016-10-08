@@ -4,12 +4,12 @@
 
 class BPAcc : public BPObject
 {
-	E_BPType m_eType;
-	uint		 m_uLen;
-	DWORD		 m_oldProtect1;
-	DWORD		 m_oldProtect2;
-	uaddr		 m_currentHitAddress;
-	DWORD		 m_currentHitAccType;
+	E_BPType	m_eType;
+	uint		m_uLen;
+	DWORD		m_oldProtect1;
+	DWORD		m_oldProtect2;
+	uaddr		m_currentHitAddress;
+	DWORD		m_currentHitAccType;
 public:
 	BPAcc(DbgObject& dbgObj , uaddr uAddr ,E_BPType eType , uint uLen);
 	virtual ~BPAcc();

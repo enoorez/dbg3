@@ -36,7 +36,6 @@ public:
 	// 移除一个断点(uIndex是断点在断点列表中的位置)
 	bool DeleteBreakpoint(uint uIndex);
 
-
 	// 判断一个断点迭代器是否是无效的
 	bool IsInvalidIterator(const BpItr& itr)const;
 	// 获取断点列表的开始迭代器

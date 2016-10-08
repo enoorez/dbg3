@@ -46,18 +46,13 @@ BPObject* BreakpointEngine::FindBreakpoint(uaddr uAddress , E_BPType eType)
 		// 判断地址是否一致
 		if(i->GetAddress() == uAddress)
 		{
-			// 判断类型是否一致, 如果是一次性断点,即使类型相同也判断
-			// 为是不一样的断点
-			if(eType != e_bt_none && i->Type() == eType)
+			// 判断类型是否一致
+			if( i->Type() == eType)
 				return i;
-			else
-				return nullptr;
-			return i;
 		}
 	}
 	return nullptr;
 }
-
 
 
 /**
@@ -86,7 +81,11 @@ bool BreakpointEngine::FixException(BpItr FindItr)
 	}
 	else // 没有被命中.
 	{
-		// 如果是tf断点，则不需要插入待恢复列表
+		// tf断点身兼两职:
+		//	1. 作为恢复其他功能断点而被设下的tf断点
+		//  2. 用户单步时设下的tf断点.
+		// 所以,如果tf断点重复,就意味着有一个功能断点需要修复,而且用户正好又要下单步断点
+		// 在这种情况, 就不能简单地删除tf断点,也不能再次再插入一个tf断点.
 		if(pBp->Type() == breakpointType_tf)
 		{
 			pBp->Install();
@@ -108,7 +107,7 @@ bool BreakpointEngine::FixException(BpItr FindItr)
 	return bHit;
 }
 
-// 重新插入断点
+// 重新安装断点
 bool BreakpointEngine::ReInstallBreakpoint()
 {
 	if(m_pRecoveryBp == nullptr)
@@ -171,7 +170,7 @@ BPObject* BreakpointEngine::AddBreakPoint(const char* pszApiName)
 	uaddr address = FindApiAddress(m_hCurrProcess , pszApiName);
 	if(address == 0)
 		return nullptr;
-	// 添加一个软甲断点
+	// 添加一个软件断点
 	return AddBreakPoint(address , breakpointType_soft);
 }
 
@@ -188,7 +187,6 @@ void BreakpointEngine::Clear()
 	}
 	m_bpList.clear();
 	m_pRecoveryBp = nullptr;
-
 }
 
 /**
@@ -205,8 +203,9 @@ bool BreakpointEngine::DeleteBreakpoint(uint uIndex)
 	{
 		if(uIndex-- == 0)
 		{
-			if(m_pRecoveryBp  == *i)
+			if(m_pRecoveryBp == *i)
 				m_pRecoveryBp = nullptr;
+
 			delete *i;
 			m_bpList.erase(i);
 			return true;
@@ -246,7 +245,8 @@ BPObject* BreakpointEngine::CheckRepeat(uaddr uAddress , E_BPType eType)
 {
 	for (auto& i : m_bpList)
 	{
-		if(i->GetAddress() == uAddress)
+		// 如果是一次性断点,即使类型相同也视为不一样的断点(此处存在逻辑隐患)
+		if(i->GetAddress() == uAddress && i->m_bOnce != true)
 			return i;
 
 // 		if(eType == breakpointType_tf && eType == i->Type())
