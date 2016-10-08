@@ -157,6 +157,7 @@ bool BPHard::IsMe(const EXCEPTION_DEBUG_INFO& ExcDebInf)const
 	CONTEXT ct = { CONTEXT_DEBUG_REGISTERS };
 	PDBG_REG7  pDr7 = nullptr;
 	PDBG_REG6  pDr6 = nullptr;
+
 	// 硬件断点的中断方式保存在DR7寄存器中
 	// 硬件断点表保存在DR0~DR3寄存器中
 	// DR6寄存器保存着DR0~DR3哪个寄存器被启用

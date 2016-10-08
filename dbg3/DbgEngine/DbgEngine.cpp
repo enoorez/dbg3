@@ -1,5 +1,4 @@
 #include "DbgEngine.h"
-#include "../dbgUi/dbgUi.h"
 
 
 DbgEngine::DbgEngine()
@@ -137,6 +136,7 @@ _SUCESS:
 
 	return e_s_sucess;
 }
+
 
 void DbgEngine::Close()
 {

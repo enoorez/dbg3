@@ -16,7 +16,7 @@
 #include "Expression/Expression.h" // 表达式模块
 #include "DisAssambly/DiAsmEngine.h" // 反汇编引擎
 #include "AssamblyEngine/XEDParse.h" // 汇编引擎
-#pragma comment(lib,"AssamblyEngine\\XEDParse.lib")
+#pragma comment(lib,"AssamblyEngine/XEDParse.lib")
 
 #include <iostream>
 #include <conio.h>
@@ -500,11 +500,12 @@ void GetCmdLineArg(char* pszCmdLine, int nArgCount,...)
 	va_end(argptr);
 }
 
+// 设置断点
 void SetBreakpoint(DbgEngine* pDbg ,DbgUi* pUi , char* szCmdLine)
 {
-	char* pAddr = 0;
-	char* pType = 0;
-	char* pLen = 0;
+	char* pAddr = 0;//断点地址
+	char* pType = 0;//断点类型
+	char* pLen = 0;//断点长度
 	char* pRule = 0; // 断点命中规则
 	Expression exp(pDbg);
 
@@ -593,6 +594,7 @@ void SetBreakpoint(DbgEngine* pDbg ,DbgUi* pUi , char* szCmdLine)
 			cout << "没有该类型的断点\n";
 			return;
 	}
+
 	// 获取完断点的地址,类型,条件后, 进行下断.
 	BPObject* pBp = pDbg->AddBreakPoint(uAddr , bpType , uBPLen);
 	if(pBp == nullptr)
@@ -600,6 +602,7 @@ void SetBreakpoint(DbgEngine* pDbg ,DbgUi* pUi , char* szCmdLine)
 		printf("设置断点失败\n");
 		return;
 	}
+
 	// 如果断点携带表达式, 则把表达式设置到断点上
 	if(pRule != nullptr)
 		BreakpointEngine::SetExp(pBp , pRule);

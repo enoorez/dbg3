@@ -1,13 +1,6 @@
 #pragma once
 #include "../BPObjcet/BPObjcet.h"
 
-typedef enum E_BPAcc_Type
-{
-	e_bpa_e = 0 ,
-	e_bpa_r  ,
-	e_bpa_w ,
-	e_bpa_rw,
-};
 
 class BPAcc : public BPObject
 {
