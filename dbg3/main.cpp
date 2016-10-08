@@ -2,7 +2,7 @@
   * 利用DbgEngine类的Open()打开一个进程进行调试.
   * 利用DbgEngine类的Exec()接收被调试进程的调试事件
   * 利用DbgEngine类的AddBreakpoint()设置断点
-  * 利用DbgEngine类的pfnBreakpointProc函数指针去处理断点事件
+  * 利用WaitForBreakpointEvent()函数等待断点事件
   * 利用DbgEngine类的GetRegInfo()获取寄存器信息
   * 利用DbgEngine类的SetRegInfo()设置寄存器信息
   * 利用DbgEngine类的ReadMomory()获取指定地址的内存

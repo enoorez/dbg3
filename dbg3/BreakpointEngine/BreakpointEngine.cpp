@@ -136,10 +136,10 @@ BPObject* BreakpointEngine::AddBreakPoint(uaddr uAddress , E_BPType eType , uint
 	{
 		
 		if(pBp->Type() != breakpointType_tf)
-			return pBp;
+			return nullptr;
 	
 		// 如果重复的断点是TF断点,则需要将TF断点转换
-		// 转换成用户断点（否则无法断在用户界面上）
+		// 转换成用户断点（否则无法断在用户界面上）欧式
 		((BPTF*)pBp)->ConverToUserBreakpoint();
 		return pBp;
 	}
@@ -246,11 +246,17 @@ BPObject* BreakpointEngine::CheckRepeat(uaddr uAddress , E_BPType eType)
 {
 	for (auto& i : m_bpList)
 	{
-		if(i->Type() == eType && i->m_bOnce == false)
-		{
-			if(i->m_uAddress == uAddress)
-				return i;
-		}
+		if(i->GetAddress() == uAddress)
+			return i;
+
+// 		if(eType == breakpointType_tf && eType == i->Type())
+// 			return i;
+
+// 		if(i->Type() == eType && i->m_bOnce == false)
+// 		{
+// 			if(i->m_uAddress == uAddress)
+// 				return i;
+// 		}
 	}
 	return nullptr;
 }
