@@ -53,9 +53,6 @@ int main()
 
 	DbgEngine		dbgEng; // 调试器引擎对象
 
-	// 注册断点处理的回调函数
-	dbgEng.m_pfnBreakpointProc = (fnExceptionProc)DbgBreakpointEvent;
-	
 	char szPath[ MAX_PATH ];
 	bool bCreateThread = false;
 	unsigned int taddr = 0;
@@ -73,9 +70,13 @@ int main()
 
 			cout << "程序打开失败\n";
 		}
+
 		cout << "调试进程创建成功, 可以进行调试\n";
+
 		g_dwProcessStatus = 0;
+		// 开启接收用户输入的线程
 		tid=_beginthreadex(0 , 0 , DbgBreakpointEvent , &dbgEng , 0 , &taddr);
+
 		while(1)
 		{
 			// 运行调试器,Exec不处于阻塞状态,因此需要放在while循环中.
@@ -156,7 +157,7 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 		if(dwStatus)
 		{
 			printf("%s>" , dwStatus == 1 ? "暂停中" : "运行中");
-			dwStatus = FALSE;
+			dwStatus = 0;
 		}
 
 		if(_kbhit())

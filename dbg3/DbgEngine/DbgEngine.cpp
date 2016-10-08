@@ -42,6 +42,7 @@ E_Status DbgEngine::Exec()
 							   );
 
 	dwStatus = DBG_CONTINUE;
+
 	// 分析调试事件
 	switch(dbgEvent.dwDebugEventCode)
 	{
@@ -65,8 +66,10 @@ E_Status DbgEngine::Exec()
 				if(m_bStopOnSystemBreakpoint)
 				{
 					//调用处理断点的回调函数
-					if(m_pfnBreakpointProc)
-						m_pfnBreakpointProc(this);
+					SetEvent(m_hBreakpointEvent);
+					// 等待用户输入完成的信号
+					WaitForSingleObject(m_hUserIputEvent , -1);
+					dwStatus = DBG_CONTINUE;
 				}
 				goto _SUCESS;
 			}
@@ -86,7 +89,6 @@ E_Status DbgEngine::Exec()
 				// 等待用户输入完成的信号
 				WaitForSingleObject(m_hUserIputEvent , -1);
 				dwStatus = DBG_EXCEPTION_NOT_HANDLED;
-				//dwStatus = m_pfnOtherException ? m_pfnOtherException(dbgEvent.u.Exception) : DBG_EXCEPTION_HANDLED;
 			}
 			else
 			{
@@ -102,6 +104,10 @@ E_Status DbgEngine::Exec()
 			break;
 		}
 		
+
+
+
+
 		case CREATE_PROCESS_DEBUG_EVENT: /*创建进程事件*/
 			// 保存oep和加载基址
 			m_oep = (uaddr)dbgEvent.u.CreateProcessInfo.lpStartAddress;
