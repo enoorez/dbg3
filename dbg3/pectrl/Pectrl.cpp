@@ -1,6 +1,7 @@
 #include "Pectrl.h"
 #include <stdio.h>
 
+
 /** 求一个值经过一定粒度对齐后的值 */
 DWORD ToAligentSize(DWORD nSize , DWORD nAligent)
 {
