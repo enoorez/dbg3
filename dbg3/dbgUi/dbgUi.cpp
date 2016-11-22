@@ -59,17 +59,17 @@ void DbgUi::ShowEx(int x , int y , ...)
 }
 
 
-
+// è¿™ä¸ªå‡½æ•°å¹¶éæœ¬äººæ‰€å†™, ç”±æˆ‘å½“æ—¶çš„åŒç­åŒå­¦å‹æƒ…æä¾›
 void DbgUi::showAsm(SIZE_T Addr , 
 					const WCHAR* ShowOpc , 
 					const WCHAR* pszDiAsm , 
 					const WCHAR* pszCom ,
 					const WCHAR* pszLineHeader)
 {
-	//Èç¹ûµØÖ·ÊÇ¶Ïµã ÏÔÊ¾¶ÏµãµÄÑÕÉ«
+	//å¦‚æœåœ°å€æ˜¯æ–­ç‚¹ æ˜¾ç¤ºæ–­ç‚¹çš„é¢œè‰²
 	if(nullptr != m_pBpEngine->FindBreakpoint(Addr,breakpointType_soft))
 	{
-		SetConsoleTextAttribute(m_hStdOut , B_H_RED );//ºìÉ«
+		SetConsoleTextAttribute(m_hStdOut , B_H_RED );//çº¢è‰²
 		wprintf(L"%s0x%08X" , pszLineHeader,Addr);
 	}
 	else
@@ -77,22 +77,22 @@ void DbgUi::showAsm(SIZE_T Addr ,
 		wprintf(L"%s0x%08X" ,pszLineHeader, Addr);
 	}
 
-	//Êä³öOPCODE
-	SetConsoleTextAttribute(m_hStdOut , F_WHITE );//»Ö¸´Ä¬ÈÏÑÕÉ«
+	//è¾“å‡ºOPCODE
+	SetConsoleTextAttribute(m_hStdOut , F_WHITE );//æ¢å¤é»˜è®¤é¢œè‰²
 	wprintf(L" | %24s | " , ShowOpc);
 
 	//wprintf(L"  %08X | %-24s | ", Addr, ShowOpc);
 	SIZE_T nLen = wcslen(pszDiAsm);
-	//¿ªÊ¼¸ßÁÁÊä³ö·´»ã±à´úÂë´úÂë
+	//å¼€å§‹é«˜äº®è¾“å‡ºåæ±‡ç¼–ä»£ç ä»£ç 
 	for(SIZE_T i = 0; i < nLen; i++)
 	{
-		SetConsoleTextAttribute(m_hStdOut , F_WHITE );		//Ä¬ÈÏµÄ°×É«
-		//Ìø×ª¸ßÁÁ£¨J£©
+		SetConsoleTextAttribute(m_hStdOut , F_WHITE );		//é»˜è®¤çš„ç™½è‰²
+		//è·³è½¬é«˜äº®ï¼ˆJï¼‰
 		if(pszDiAsm[ i ] == 'j')
 		{
 			if(pszDiAsm[ i + 1 ] == 'm'&&pszDiAsm[ i + 2 ] == 'p')
 			{
-				SetConsoleTextAttribute(m_hStdOut , B_H_GREEN );//ÂÌÉ«
+				SetConsoleTextAttribute(m_hStdOut , B_H_GREEN );//ç»¿è‰²
 				while(pszDiAsm[ i ] != ' '&&pszDiAsm[ i ] != '\t')
 				{
 					wprintf(L"%c" , pszDiAsm[ i ]);
@@ -103,7 +103,7 @@ void DbgUi::showAsm(SIZE_T Addr ,
 			}
 			else
 			{
-				SetConsoleTextAttribute(m_hStdOut , B_H_YELLOW );//»ÆÉ«
+				SetConsoleTextAttribute(m_hStdOut , B_H_YELLOW );//é»„è‰²
 				while(pszDiAsm[ i ] != ' '&&pszDiAsm[ i ] != '\t')
 				{
 					wprintf(L"%c" , pszDiAsm[ i ]);
@@ -113,10 +113,10 @@ void DbgUi::showAsm(SIZE_T Addr ,
 				continue;
 			}
 		}
-		//CALL¸ßÁÁ
+		//CALLé«˜äº®
 		if(pszDiAsm[ i ] == 'c'&&pszDiAsm[ i + 1 ] == 'a'&&pszDiAsm[ i + 2 ] == 'l'&&pszDiAsm[ i + 3 ] == 'l')
 		{
-			SetConsoleTextAttribute(m_hStdOut , B_H_RED );//ºìÉ«
+			SetConsoleTextAttribute(m_hStdOut , B_H_RED );//çº¢è‰²
 			while(pszDiAsm[ i ] != ' '&&pszDiAsm[ i ] != '\t')
 			{
 				wprintf(L"%c" , pszDiAsm[ i ]);
@@ -125,11 +125,11 @@ void DbgUi::showAsm(SIZE_T Addr ,
 			i--;
 			continue;
 		}
-		//RET¸ßÁÁ
+		//RETé«˜äº®
 		if((pszDiAsm[ i ] == 'r'&&pszDiAsm[ i + 1 ] == 'e'&&pszDiAsm[ i + 2 ] == 't') ||
 		   (pszDiAsm[ i ] == 'i'&&pszDiAsm[ i + 1 ] == 'r'&&pszDiAsm[ i + 2 ] == 'e'))
 		{
-			SetConsoleTextAttribute(m_hStdOut , F_H_LIGHTBLUE  /* |REVERSE */ );//ÇàÉ«
+			SetConsoleTextAttribute(m_hStdOut , F_H_LIGHTBLUE  /* |REVERSE */ );//é’è‰²
 			while(pszDiAsm[ i ] != ' '&&pszDiAsm[ i ] != '\t')
 			{
 				wprintf(L"%c" , pszDiAsm[ i ]);
@@ -138,11 +138,11 @@ void DbgUi::showAsm(SIZE_T Addr ,
 			i--;
 			continue;
 		}
-		//PUSH POP¸ßÁÁ
+		//PUSH POPé«˜äº®
 		if((pszDiAsm[ i ] == 'p'&&pszDiAsm[ i + 1 ] == 'u'&&pszDiAsm[ i + 2 ] == 's') ||
 		   (pszDiAsm[ i ] == 'p'&&pszDiAsm[ i + 1 ] == 'o'&&pszDiAsm[ i + 2 ] == 'p'))
 		{
-			SetConsoleTextAttribute(m_hStdOut , F_H_PURPLE );//´øÑ¡Ôñ£¡£¡£¡
+			SetConsoleTextAttribute(m_hStdOut , F_H_PURPLE );//å¸¦é€‰æ‹©ï¼ï¼ï¼
 			while(pszDiAsm[ i ] != ' '&&pszDiAsm[ i ] != '\t')
 			{
 				wprintf(L"%c" , pszDiAsm[ i ]);
@@ -151,11 +151,11 @@ void DbgUi::showAsm(SIZE_T Addr ,
 			i--;
 			continue;
 		}
-		//Á¢¼´Êı¸ßÁÁ
+		//ç«‹å³æ•°é«˜äº®
 		if((pszDiAsm[ i + 8 ] == 'h') && (pszDiAsm[ i - 1 ] == ' ' || pszDiAsm[ i - 1 ] == ',')
 		   && i > 5)
 		{
-			SetConsoleTextAttribute(m_hStdOut , F_H_YELLOW );//»ÆÉ«
+			SetConsoleTextAttribute(m_hStdOut , F_H_YELLOW );//é»„è‰²
 			while(pszDiAsm[ i ] != ' '&&pszDiAsm[ i ] != '\0')
 			{
 				wprintf(L"%c" , pszDiAsm[ i ]);
@@ -164,7 +164,7 @@ void DbgUi::showAsm(SIZE_T Addr ,
 			i--;
 			continue;
 		}
-		//ÄÚ´æµØÖ·¸ßÁÁ
+		//å†…å­˜åœ°å€é«˜äº®
 		if((pszDiAsm[ i ] == 'b'&&pszDiAsm[ i + 1 ] == 'y'&&pszDiAsm[ i + 2 ] == 't'
 			&&pszDiAsm[ i + 3 ] == 'e') ||
 			(pszDiAsm[ i ] == 'w'&&pszDiAsm[ i + 1 ] == 'o'&&pszDiAsm[ i + 2 ] == 'r'
@@ -179,7 +179,7 @@ void DbgUi::showAsm(SIZE_T Addr ,
 			if((pszDiAsm[ i - 2 ] == 'l'&&pszDiAsm[ i - 3 ] == 'l') &&
 			   (pszDiAsm[ i - 4 ] == 'a'&&pszDiAsm[ i - 5 ] == 'c'))
 			{
-				//CALLµØÖ·¸ßÁÁ
+				//CALLåœ°å€é«˜äº®
 				SetConsoleTextAttribute(m_hStdOut , F_H_PURPLE );
 				while(pszDiAsm[ i ] != ',' && pszDiAsm[ i ] != '\0')
 				{
@@ -191,7 +191,7 @@ void DbgUi::showAsm(SIZE_T Addr ,
 			}
 			else
 			{
-				//DS¸ßÁÁ
+				//DSé«˜äº®
 				SetConsoleTextAttribute(m_hStdOut , F_H_LIGHTBLUE );
 				while(pszDiAsm[ i ] != ',' && pszDiAsm[ i ] != '\0')
 				{
@@ -202,14 +202,14 @@ void DbgUi::showAsm(SIZE_T Addr ,
 				continue;
 			}
 		}
-		//ÄÚ´æµØÖ·Á¢¼´Êı¸ßÁÁ
+		//å†…å­˜åœ°å€ç«‹å³æ•°é«˜äº®
 		if((pszDiAsm[ i - 6 ] == 'j' || pszDiAsm[ i - 4 ] == 'j' || pszDiAsm[ i - 3 ] == 'j') ||
 		   (pszDiAsm[ i - 5 ] == 'c'&&pszDiAsm[ i - 4 ] == 'a' &&pszDiAsm[ i - 3 ] == 'l' &&pszDiAsm[ i - 2 ] == 'l') ||
 		   (pszDiAsm[ i - 5 ] == 'l'&& pszDiAsm[ i - 4 ] == 'o'&&pszDiAsm[ i - 3 ] == 'o'&&pszDiAsm[ i - 1 ] == '\t') ||
 		   (pszDiAsm[ i - 6 ] == 'l'&&pszDiAsm[ i - 5 ] == 'o'&&pszDiAsm[ i - 4 ] == 'o'&&pszDiAsm[ i - 1 ] == '\t') ||
 		   (pszDiAsm[ i - 7 ] == 'l'&&pszDiAsm[ i - 6 ] == 'o'&&pszDiAsm[ i - 5 ] == 'o'&&pszDiAsm[ i - 1 ] == '\t'))
 		{
-			SetConsoleTextAttribute(m_hStdOut , F_H_GREEN );//ÂÌÉ«
+			SetConsoleTextAttribute(m_hStdOut , F_H_GREEN );//ç»¿è‰²
 			while(pszDiAsm[ i ] != ',' && pszDiAsm[ i ] != '\0')
 			{
 				wprintf(L"%c" , pszDiAsm[ i ]);
@@ -219,16 +219,16 @@ void DbgUi::showAsm(SIZE_T Addr ,
 			continue;
 		}
 		SetConsoleTextAttribute(m_hStdOut , F_H_WHITE );
-		wprintf(L"%c" , pszDiAsm[ i ]);//Êä³öÃ»ÓĞ¸ßÁÁµÄ×Ö·û
+		wprintf(L"%c" , pszDiAsm[ i ]);//è¾“å‡ºæ²¡æœ‰é«˜äº®çš„å­—ç¬¦
 	}
 
 	if(pszCom != NULL)
 	{
-		SetConsoleTextAttribute(m_hStdOut , F_H_GREEN );//ÂÌÉ«
+		SetConsoleTextAttribute(m_hStdOut , F_H_GREEN );//ç»¿è‰²
 		wprintf(L"%*c %s" , 40-wcslen(pszDiAsm) , '|' , pszCom);
 	}
-	SetConsoleTextAttribute(m_hStdOut , F_WHITE );//»Ö¸´Ä¬ÈÏÑÕÉ«
-	wprintf(L"\n");//Êä³ö»»ĞĞ
+	SetConsoleTextAttribute(m_hStdOut , F_WHITE );//æ¢å¤é»˜è®¤é¢œè‰²
+	wprintf(L"\n");//è¾“å‡ºæ¢è¡Œ
 }
 
 
@@ -370,7 +370,7 @@ void byteArr2HexStr(const LPBYTE& lpbArr , DWORD dwBSize , char* pszHexStr , con
 	while(j < dwBSize)
 	{
 		byteNum = *((PBYTE)(lpbArr + j));
-		// ×ª³É×Ö·û´®
+		// è½¬æˆå­—ç¬¦ä¸²
 		sprintf_s(pszHexStr + i , 3 + 1 , "%02X%c" , byteNum , wcSpace);
 		i += dwIndex;
 		++j;
@@ -440,7 +440,7 @@ void DbgUi::showBreakPointList(list<BPObject*>::const_iterator beginItr ,
 							   list<BPObject*>::const_iterator endItr)
 {
 	printf("------+------------+----------------+---------------\n");
-	printf(" ĞòºÅ |    µØÖ·    |      ÀàĞÍ      |     Ìõ¼ş\n");
+	printf(" åºå· |    åœ°å€    |      ç±»å‹      |     æ¡ä»¶\n");
 	printf("------+------------+----------------+---------------\n");
 	int j = 0;
 
@@ -460,34 +460,34 @@ void DbgUi::showBreakPointList(list<BPObject*>::const_iterator beginItr ,
 		switch(Type)
 		{
 			case breakpointType_hard_r:
-				printf("%14s  |" , "Ó²¼ş¶Á¶Ïµã");
+				printf("%14s  |" , "ç¡¬ä»¶è¯»æ–­ç‚¹");
 				break;
 			case breakpointType_hard_w:
-				printf("%14s  |" , "Ó²¼şĞ´¶Ïµã");
+				printf("%14s  |" , "ç¡¬ä»¶å†™æ–­ç‚¹");
 				break;
 			case breakpointType_hard_e:
-				printf("%14s  |" , "Ó²¼şÖ´ĞĞ¶Ïµã");
+				printf("%14s  |" , "ç¡¬ä»¶æ‰§è¡Œæ–­ç‚¹");
 				break;
 			case breakpointType_hard_rw:
-				printf("%14s  |" , "Ó²¼ş¶ÁĞ´¶Ïµã");
+				printf("%14s  |" , "ç¡¬ä»¶è¯»å†™æ–­ç‚¹");
 				break;
 			case breakpointType_acc_r:
-				printf("%14s  |" , "ÄÚ´æ¶Á¶Ïµã");
+				printf("%14s  |" , "å†…å­˜è¯»æ–­ç‚¹");
 				break;
 			case breakpointType_acc_w:
-				printf("%14s  |" , "ÄÚ´æĞ´¶Ïµã");
+				printf("%14s  |" , "å†…å­˜å†™æ–­ç‚¹");
 				break;
 			case breakpointType_acc_e:
-				printf("%14s  |" , "ÄÚ´æÖ´ĞĞ¶Ïµã");
+				printf("%14s  |" , "å†…å­˜æ‰§è¡Œæ–­ç‚¹");
 				break;
 			case breakpointType_soft:
-				printf("%14s  |" , "Èí¼ş¶Ïµã");
+				printf("%14s  |" , "è½¯ä»¶æ–­ç‚¹");
 				break;
 			default:
-				printf("%14s  |" , "ÎŞÀàĞÍ");
+				printf("%14s  |" , "æ— ç±»å‹");
 		}
 		pCondition = (*beginItr)->GetCondition();
-		printf(" %s\n" , pCondition==nullptr?"ÎŞ":pCondition);
+		printf(" %s\n" , pCondition==nullptr?"æ— ":pCondition);
 	}
 	printf("------+------------+----------------+---------------\n");
 }
