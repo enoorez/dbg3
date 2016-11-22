@@ -14,9 +14,9 @@ BreakpointEngine::~BreakpointEngine()
 }
 
 /**
-  * ¹¦  ÄÜ: ²éÕÒ¶Ïµã ·µ»ØlistµÄÒ»¸öµü´úÆ÷
-  * ·µ»ØÖµ: BpItr
-  * ÐÎ  ²Î: const EXCEPTION_DEBUG_INFO & ExceptionInfo
+  * åŠŸ  èƒ½: æŸ¥æ‰¾æ–­ç‚¹ è¿”å›žlistçš„ä¸€ä¸ªè¿­ä»£å™¨
+  * è¿”å›žå€¼: BpItr
+  * å½¢  å‚: const EXCEPTION_DEBUG_INFO & ExceptionInfo
   */
 BpItr BreakpointEngine::FindBreakpoint(const EXCEPTION_DEBUG_INFO& ExceptionInfo)
 {
@@ -25,7 +25,7 @@ BpItr BreakpointEngine::FindBreakpoint(const EXCEPTION_DEBUG_INFO& ExceptionInfo
 		i != m_bpList.end();
 		++i)
 	{
-		// ÀûÓÃ¶Ïµã¶ÔÏó×Ô¼ºÌá¹©µÄ·½·¨À´ÅÐ¶ÏÒì³£ÐÅÏ¢ÊÇ·ñÊÇÓÉ¸Ã¶Ïµã²úÉúµÄ
+		// åˆ©ç”¨æ–­ç‚¹å¯¹è±¡è‡ªå·±æä¾›çš„æ–¹æ³•æ¥åˆ¤æ–­å¼‚å¸¸ä¿¡æ¯æ˜¯å¦æ˜¯ç”±è¯¥æ–­ç‚¹äº§ç”Ÿçš„
 		if((*i)->IsMe(ExceptionInfo))
 			return i;
 	}
@@ -34,80 +34,75 @@ BpItr BreakpointEngine::FindBreakpoint(const EXCEPTION_DEBUG_INFO& ExceptionInfo
 
 
 /**
-  * ¹¦  ÄÜ: ¸ù¾ÝÌá¹©µÄµØÖ·ºÍÀàÐÍ²éÕÒ¶Ïµã,·µ»Ø¶Ïµã¶ÔÏó
-  * ·µ»ØÖµ: BPObject*
-  * ÐÎ  ²Î: uaddr uAddress
-  * ÐÎ  ²Î: E_BPType eType
+  * åŠŸ  èƒ½: æ ¹æ®æä¾›çš„åœ°å€å’Œç±»åž‹æŸ¥æ‰¾æ–­ç‚¹,è¿”å›žæ–­ç‚¹å¯¹è±¡
+  * è¿”å›žå€¼: BPObject*
+  * å½¢  å‚: uaddr uAddress
+  * å½¢  å‚: E_BPType eType
   */
 BPObject* BreakpointEngine::FindBreakpoint(uaddr uAddress , E_BPType eType)
 {
 	for(auto& i : m_bpList)
 	{
-		// ÅÐ¶ÏµØÖ·ÊÇ·ñÒ»ÖÂ
-		if(i->GetAddress() == uAddress)
-		{
-			// ÅÐ¶ÏÀàÐÍÊÇ·ñÒ»ÖÂ
-			if( i->Type() == eType)
-				return i;
-		}
+		// åˆ¤æ–­åœ°å€æ˜¯å¦ä¸€è‡´,åˆ¤æ–­ç±»åž‹æ˜¯å¦ä¸€è‡´
+		if(i->GetAddress() == uAddress && i->Type() == eType)
+			return i;
 	}
 	return nullptr;
 }
 
 
 /**
-  * ¹¦  ÄÜ: ÐÞ¸´Òì³£
-  * ·µ»ØÖµ: bool ,Ôò·µ»Øtrue,·ñÔò·µ»Øfalse
-  * ÐÎ  ²Î: BpItr FindItr
+  * åŠŸ  èƒ½: ä¿®å¤å¼‚å¸¸
+  * è¿”å›žå€¼: bool ,åˆ™è¿”å›žtrue,å¦åˆ™è¿”å›žfalse
+  * å½¢  å‚: BpItr FindItr
   */
 bool BreakpointEngine::FixException(BpItr FindItr)
 {
 	BPObject* pBp = *FindItr;
 
-	// ´Ó±»µ÷ÊÔ½ø³ÌÖÐÒÆ³ý¶Ïµã(Ê¹¶ÏµãÊ§Ð§)
+	// ä»Žè¢«è°ƒè¯•è¿›ç¨‹ä¸­ç§»é™¤æ–­ç‚¹(ä½¿æ–­ç‚¹å¤±æ•ˆ)
 	pBp->Remove();
 
-	// »ñÈ¡¶ÏµãÊÇ·ñ±»ÃüÖÐ,ÄÚ²¿»áÓÐÒ»Ð©Ìõ¼þ±í´ïÊ½,
-	// Èç¹ûÌõ¼þ±í´ïÊ½Îªtrue²Å±»ÃüÖÐ,·ñÔò²»±»ÃüÖÐ
+	// èŽ·å–æ–­ç‚¹æ˜¯å¦è¢«å‘½ä¸­,å†…éƒ¨ä¼šæœ‰ä¸€äº›æ¡ä»¶è¡¨è¾¾å¼,
+	// å¦‚æžœæ¡ä»¶è¡¨è¾¾å¼ä¸ºtrueæ‰è¢«å‘½ä¸­,å¦åˆ™ä¸è¢«å‘½ä¸­
 	bool bHit = pBp->IsHit();
 
-	// ÅÐ¶Ï¶ÏµãÊÇ·ñÐèÒª´Ó¶ÏµãÁÐ±íÖÐÒÆ³ý
+	// åˆ¤æ–­æ–­ç‚¹æ˜¯å¦éœ€è¦ä»Žæ–­ç‚¹åˆ—è¡¨ä¸­ç§»é™¤
 	if(pBp->NeedRemove())
 	{
-		// ÊÍ·Å¿Õ¼ä
+		// é‡Šæ”¾ç©ºé—´
 		delete pBp;
-		// ´Ó¶Ïµã±íÖÐÉ¾³ý¶Ïµã¼ÇÂ¼
+		// ä»Žæ–­ç‚¹è¡¨ä¸­åˆ é™¤æ–­ç‚¹è®°å½•
 		m_bpList.erase(FindItr);
 	}
-	else // Ã»ÓÐ±»ÃüÖÐ.
+	else // æ²¡æœ‰è¢«å‘½ä¸­.
 	{
-		// tf¶ÏµãÉí¼æÁ½Ö°:
-		//	1. ×÷Îª»Ö¸´ÆäËû¹¦ÄÜ¶Ïµã¶ø±»ÉèÏÂµÄtf¶Ïµã
-		//  2. ÓÃ»§µ¥²½Ê±ÉèÏÂµÄtf¶Ïµã.
-		// ËùÒÔ,Èç¹ûtf¶ÏµãÖØ¸´,¾ÍÒâÎ¶×ÅÓÐÒ»¸ö¹¦ÄÜ¶ÏµãÐèÒªÐÞ¸´,¶øÇÒÓÃ»§ÕýºÃÓÖÒªÏÂµ¥²½¶Ïµã
-		// ÔÚÕâÖÖÇé¿ö, ¾Í²»ÄÜ¼òµ¥µØÉ¾³ýtf¶Ïµã,Ò²²»ÄÜÔÙ´ÎÔÙ²åÈëÒ»¸ötf¶Ïµã.
+		// tfæ–­ç‚¹èº«å…¼ä¸¤èŒ:
+		//  1. ä½œä¸ºæ¢å¤å…¶ä»–åŠŸèƒ½æ–­ç‚¹è€Œè¢«è®¾ä¸‹çš„tfæ–­ç‚¹
+		//  2. ç”¨æˆ·å•æ­¥æ—¶è®¾ä¸‹çš„tfæ–­ç‚¹.
+		// æ‰€ä»¥,å¦‚æžœtfæ–­ç‚¹é‡å¤,å°±æ„å‘³ç€æœ‰ä¸€ä¸ªåŠŸèƒ½æ–­ç‚¹éœ€è¦ä¿®å¤,è€Œä¸”ç”¨æˆ·æ­£å¥½åˆè¦ä¸‹å•æ­¥æ–­ç‚¹
+		// åœ¨è¿™ç§æƒ…å†µ, å°±ä¸èƒ½ç®€å•åœ°åˆ é™¤tfæ–­ç‚¹,ä¹Ÿä¸èƒ½å†æ¬¡å†æ’å…¥ä¸€ä¸ªtfæ–­ç‚¹.
 		if(pBp->Type() == breakpointType_tf)
 		{
 			pBp->Install();
 			return bHit;
 		}
 
-		// ÒòÎª¶ÏµãÒÑ¾­±»ÒÆ³ý, ¶ÏµãÒÑ¾­Ê§Ð§,Òò´Ë,ÐèÒª»Ö¸´¶ÏµãµÄÓÐÐ§ÐÔ
-		// ½«¶Ïµã·ÅÈë´ý»Ö¸´¶Ïµã±íÖÐ
-		//m_bpRecList.push_back(pBp);
+		// å› ä¸ºæ–­ç‚¹å·²ç»è¢«ç§»é™¤, æ–­ç‚¹å·²ç»å¤±æ•ˆ,å› æ­¤,éœ€è¦æ¢å¤æ–­ç‚¹çš„æœ‰æ•ˆæ€§
+		// å°†æ–­ç‚¹æ”¾å…¥å¾…æ¢å¤æ–­ç‚¹è¡¨ä¸­
 		m_pRecoveryBp = pBp;
 
-		// ²åÈëtf¶Ïµã,´¥·¢Ò»¸öÒì³£,ÓÃÓÚ»Ö¸´Ê§Ð§µÄ¶Ïµã
+		// æ’å…¥tfæ–­ç‚¹,è§¦å‘ä¸€ä¸ªå¼‚å¸¸,ç”¨äºŽæ¢å¤å¤±æ•ˆçš„æ–­ç‚¹
 		BPObject *pTf = new BPTF(*this , false);
 		pTf->Install();
 		m_bpList.push_front(pTf);
 	}
 
-	// ·µ»Ø¶ÏµãÊÇ·ñ±»ÃüÖÐ
+	// è¿”å›žæ–­ç‚¹æ˜¯å¦è¢«å‘½ä¸­
 	return bHit;
 }
 
-// ÖØÐÂ°²×°¶Ïµã
+// é‡æ–°å®‰è£…æ–­ç‚¹
 bool BreakpointEngine::ReInstallBreakpoint()
 {
 	if(m_pRecoveryBp == nullptr)
@@ -118,38 +113,38 @@ bool BreakpointEngine::ReInstallBreakpoint()
 }
 
 /**
-  * ¹¦  ÄÜ: Ìí¼Ó¶Ïµãµ½¶ÏµãÁÐ±íÖÐ
-  * ·µ»ØÖµ: BPObject*
-  * ÐÎ  ²Î: uaddr uAddress
-  * ÐÎ  ²Î: E_BPType eType
-  * ÐÎ  ²Î: uint uLen
+  * åŠŸ  èƒ½: æ·»åŠ æ–­ç‚¹åˆ°æ–­ç‚¹åˆ—è¡¨ä¸­
+  * è¿”å›žå€¼: BPObject*
+  * å½¢  å‚: uaddr uAddress
+  * å½¢  å‚: E_BPType eType
+  * å½¢  å‚: uint uLen
   */
 BPObject* BreakpointEngine::AddBreakPoint(uaddr uAddress , E_BPType eType , uint uLen)
 {
-	// Ìí¼Ó¶Ïµã
+	// æ·»åŠ æ–­ç‚¹
 	BPObject	*pBp = nullptr;
 	
-	// ÅÐ¶ÏÊÇ·ñº¬ÓÐÖØ¸´¶Ïµã
+	// åˆ¤æ–­æ˜¯å¦å«æœ‰é‡å¤æ–­ç‚¹
 	pBp = CheckRepeat(uAddress , eType);
-	if(pBp!=nullptr) // ÓÐÖØ¸´µÄTF¶Ïµã
+	if(pBp!=nullptr)
 	{
-		
+		 // åˆ¤æ–­æ˜¯å¦æœ‰é‡å¤çš„TFæ–­ç‚¹
 		if(pBp->Type() != breakpointType_tf)
 			return nullptr;
 	
-		// Èç¹ûÖØ¸´µÄ¶ÏµãÊÇTF¶Ïµã,ÔòÐèÒª½«TF¶Ïµã×ª»»
-		// ×ª»»³ÉÓÃ»§¶Ïµã£¨·ñÔòÎÞ·¨¶ÏÔÚÓÃ»§½çÃæÉÏ£©Å·Ê½
+		// å¦‚æžœé‡å¤çš„æ–­ç‚¹æ˜¯TFæ–­ç‚¹,åˆ™éœ€è¦å°†TFæ–­ç‚¹è½¬æ¢
+		// è½¬æ¢æˆç”¨æˆ·æ–­ç‚¹ï¼ˆå¦åˆ™æ— æ³•æ–­åœ¨ç”¨æˆ·ç•Œé¢ä¸Šï¼‰
 		((BPTF*)pBp)->ConverToUserBreakpoint();
 		return pBp;
 	}
 
-	if(eType == breakpointType_tf)// TF¶Ïµã
+	if(eType == breakpointType_tf)// TFæ–­ç‚¹
 		pBp = new BPTF(*this,true);
-	else if(eType == breakpointType_soft) // Èí¼þ¶Ïµã
+	else if(eType == breakpointType_soft) // è½¯ä»¶æ–­ç‚¹
 		pBp = (new BPSoft(*this , uAddress));
-	else if(eType >= breakpointType_acc && eType <= breakpointType_acc_rw)//ÄÚ´æ·ÃÎÊ¶Ïµã
+	else if(eType >= breakpointType_acc && eType <= breakpointType_acc_rw)//å†…å­˜è®¿é—®æ–­ç‚¹
 		pBp = (new BPAcc(*this , uAddress , eType , uLen));
-	else if(eType >= breakpointType_hard && eType <= breakpointType_hard_rw)// Ó²¼þ¶Ïµã
+	else if(eType >= breakpointType_hard && eType <= breakpointType_hard_rw)// ç¡¬ä»¶æ–­ç‚¹
 		pBp = (new BPHard(*this , uAddress , eType , uLen));
 	else
 		return nullptr;
@@ -159,24 +154,24 @@ BPObject* BreakpointEngine::AddBreakPoint(uaddr uAddress , E_BPType eType , uint
 		return false;
 	}
 
-	// ½«¶Ïµã²åÈëµ½¶ÏµãÁ´±íÖÐ
+	// å°†æ–­ç‚¹æ’å…¥åˆ°æ–­ç‚¹é“¾è¡¨ä¸­
 	m_bpList.push_front(pBp);
 	return pBp;
 }
 
 BPObject* BreakpointEngine::AddBreakPoint(const char* pszApiName)
 {
-	// ²éÕÒAPIµÄµØÖ·
+	// æŸ¥æ‰¾APIçš„åœ°å€
 	uaddr address = FindApiAddress(m_hCurrProcess , pszApiName);
 	if(address == 0)
 		return nullptr;
-	// Ìí¼ÓÒ»¸öÈí¼þ¶Ïµã
+	// æ·»åŠ ä¸€ä¸ªè½¯ä»¶æ–­ç‚¹
 	return AddBreakPoint(address , breakpointType_soft);
 }
 
 /**
-  * ¹¦  ÄÜ: Çå¿Õ¶ÏµãÁÐ±í
-  * ·µ»ØÖµ: void
+  * åŠŸ  èƒ½: æ¸…ç©ºæ–­ç‚¹åˆ—è¡¨
+  * è¿”å›žå€¼: void
   */
 void BreakpointEngine::Clear()
 {
@@ -190,9 +185,9 @@ void BreakpointEngine::Clear()
 }
 
 /**
-  * ¹¦  ÄÜ: ÒÆ³ý¶Ïµã
-  * ·µ»ØÖµ: bool
-  * ÐÎ  ²Î: uint uIndex
+  * åŠŸ  èƒ½: ç§»é™¤æ–­ç‚¹
+  * è¿”å›žå€¼: bool
+  * å½¢  å‚: uint uIndex
   */
 bool BreakpointEngine::DeleteBreakpoint(uint uIndex)
 {
@@ -245,7 +240,7 @@ BPObject* BreakpointEngine::CheckRepeat(uaddr uAddress , E_BPType eType)
 {
 	for (auto& i : m_bpList)
 	{
-		// Èç¹ûÊÇÒ»´ÎÐÔ¶Ïµã,¼´Ê¹ÀàÐÍÏàÍ¬Ò²ÊÓÎª²»Ò»ÑùµÄ¶Ïµã(´Ë´¦´æÔÚÂß¼­Òþ»¼)
+		// å¦‚æžœæ˜¯ä¸€æ¬¡æ€§æ–­ç‚¹,å³ä½¿ç±»åž‹ç›¸åŒä¹Ÿè§†ä¸ºä¸ä¸€æ ·çš„æ–­ç‚¹(æ­¤å¤„å­˜åœ¨é€»è¾‘éšæ‚£)
 		if(i->GetAddress() == uAddress && i->m_bOnce != true)
 			return i;
 
