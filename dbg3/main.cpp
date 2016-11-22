@@ -1,57 +1,56 @@
 /**
-  * ÀûÓÃDbgEngineÀàµÄOpen()´ò¿ªÒ»¸ö½ø³Ì½øĞĞµ÷ÊÔ.
-  * ÀûÓÃDbgEngineÀàµÄExec()½ÓÊÕ±»µ÷ÊÔ½ø³ÌµÄµ÷ÊÔÊÂ¼ş
-  * ÀûÓÃDbgEngineÀàµÄAddBreakpoint()ÉèÖÃ¶Ïµã
-  * ÀûÓÃWaitForBreakpointEvent()º¯ÊıµÈ´ı¶ÏµãÊÂ¼ş
-  * ÀûÓÃDbgEngineÀàµÄGetRegInfo()»ñÈ¡¼Ä´æÆ÷ĞÅÏ¢
-  * ÀûÓÃDbgEngineÀàµÄSetRegInfo()ÉèÖÃ¼Ä´æÆ÷ĞÅÏ¢
-  * ÀûÓÃDbgEngineÀàµÄReadMomory()»ñÈ¡Ö¸¶¨µØÖ·µÄÄÚ´æ
-  * ÀûÓÃDbgEngineÀàµÄWriteMomory()ÉèÖÃÖ¸¶¨µØÖ·µÄÄÚ´æ
-  * ÀûÓÃDisAssamblyµÄDiAsm()À´½«Ò»¶Îopcode×ª»»³É»ã±à´úÂë
-  * ÀûÓÃXEDParseµÄXEDParseAssemble()À´½«Ò»¶Î»ã±à´úÂë×ª»»³Éopcode
+  * åˆ©ç”¨DbgEngineç±»çš„Open()æ‰“å¼€ä¸€ä¸ªè¿›ç¨‹è¿›è¡Œè°ƒè¯•.
+  * åˆ©ç”¨DbgEngineç±»çš„Exec()æ¥æ”¶è¢«è°ƒè¯•è¿›ç¨‹çš„è°ƒè¯•äº‹ä»¶
+  * åˆ©ç”¨DbgEngineç±»çš„AddBreakpoint()è®¾ç½®æ–­ç‚¹
+  * åˆ©ç”¨WaitForBreakpointEvent()å‡½æ•°ç­‰å¾…æ–­ç‚¹äº‹ä»¶
+  * åˆ©ç”¨DbgEngineç±»çš„GetRegInfo()è·å–å¯„å­˜å™¨ä¿¡æ¯
+  * åˆ©ç”¨DbgEngineç±»çš„SetRegInfo()è®¾ç½®å¯„å­˜å™¨ä¿¡æ¯
+  * åˆ©ç”¨DbgEngineç±»çš„ReadMomory()è·å–æŒ‡å®šåœ°å€çš„å†…å­˜
+  * åˆ©ç”¨DbgEngineç±»çš„WriteMomory()è®¾ç½®æŒ‡å®šåœ°å€çš„å†…å­˜
+  * åˆ©ç”¨DisAssamblyçš„DiAsm()æ¥å°†ä¸€æ®µopcodeè½¬æ¢æˆæ±‡ç¼–ä»£ç 
+  * åˆ©ç”¨XEDParseçš„XEDParseAssemble()æ¥å°†ä¸€æ®µæ±‡ç¼–ä»£ç è½¬æ¢æˆopcode
   */
 
-#include "DbgEngine/DbgEngine.h" // µ÷ÊÔÒıÇæ
-#include "dbgUi/dbgUi.h" // ÓÃ»§½çÃæ
-#include "Expression/Expression.h" // ±í´ïÊ½Ä£¿é
-#include "DisAssambly/DiAsmEngine.h" // ·´»ã±àÒıÇæ
-#include "AssamblyEngine/XEDParse.h" // »ã±àÒıÇæ
+#include "DbgEngine/DbgEngine.h" // è°ƒè¯•å¼•æ“
+#include "dbgUi/dbgUi.h" // ç”¨æˆ·ç•Œé¢
+#include "Expression/Expression.h" // è¡¨è¾¾å¼æ¨¡å—
+#include "DisAssambly/DiAsmEngine.h" // åæ±‡ç¼–å¼•æ“
+#include "AssamblyEngine/XEDParse.h" // æ±‡ç¼–å¼•æ“
 #pragma comment(lib,"AssamblyEngine/XEDParse.lib")
 
 #include <iostream>
 #include <conio.h>
 using namespace std;
 
-// ÏÔÊ¾µ÷ÊÔÆ÷ÃüÁîĞĞ°ïÖúĞÅÏ¢
+// æ˜¾ç¤ºè°ƒè¯•å™¨å‘½ä»¤è¡Œå¸®åŠ©ä¿¡æ¯
 void showHelp(); 
-// ½«×Ö·û´®·Ö¸î³ÉÁ½¸ö×Ö·û´®(½«µÚÒ»´ÎÓöµ½µÄ¿Õ¸ñÌæ»»³É×Ö·û´®½áÊø·û)
+// å°†å­—ç¬¦ä¸²åˆ†å‰²æˆä¸¤ä¸ªå­—ç¬¦ä¸²(å°†ç¬¬ä¸€æ¬¡é‡åˆ°çš„ç©ºæ ¼æ›¿æ¢æˆå­—ç¬¦ä¸²ç»“æŸç¬¦)
 char* GetSecondArg(char* pBuff);
 inline char* SkipSpace(char* pBuff);
 
 
 
-// µ÷ÊÔÆ÷ÒıÇæµÄ¶Ïµã´¦Àí»Øµ÷º¯Êı
-// ¶Ïµã±»ÃüÖĞÊ±,µ÷ÊÔÆ÷ÒıÇæ»áµ÷ÓÃ´Ëº¯Êı
+// è°ƒè¯•å™¨å¼•æ“çš„æ–­ç‚¹å¤„ç†å›è°ƒå‡½æ•°
 unsigned int __stdcall DbgBreakpointEvent(void* uParam);
 unsigned int __stdcall OtherDbgBreakpointEvent(void* uParam);
 
 
-// »ñÈ¡ÃüÁîĞĞÖĞµÄ²ÎÊı
+// è·å–å‘½ä»¤è¡Œä¸­çš„å‚æ•°
 void GetCmdLineArg(char* pszCmdLine , int nArgCount , ...);
-// ÉèÖÃ¶Ïµã
+// è®¾ç½®æ–­ç‚¹
 void SetBreakpoint(DbgEngine* pDbg , DbgUi* pUi , char* szCmdLine);
 DWORD	g_dwProcessStatus = 0;
 
 
 int main()
 {
-	// ÉèÖÃ´úÂëÒ³,ÒÔÖ§³ÖÖĞÎÄ
+	// è®¾ç½®ä»£ç é¡µ,ä»¥æ”¯æŒä¸­æ–‡
 	setlocale(LC_ALL , "chs");
 	cout << "\t\t---------< Dbg >---------\n";
-	cout << "\t\t---< °´h²é¿´ÍêÕûÃüÁî >---\n";
+	cout << "\t\t---< æŒ‰hæŸ¥çœ‹å®Œæ•´å‘½ä»¤ >---\n";
 
 
-	DbgEngine		dbgEng; // µ÷ÊÔÆ÷ÒıÇæ¶ÔÏó
+	DbgEngine		dbgEng; // è°ƒè¯•å™¨å¼•æ“å¯¹è±¡
 
 	char szPath[ MAX_PATH ];
 	bool bCreateThread = false;
@@ -61,30 +60,30 @@ int main()
 	{
 		while(true)
 		{
-			cout << "ÊäÈëÂ·¾¶ÒÔ´ò¿ªµ÷ÊÔ½ø³Ì:";
+			cout << "è¾“å…¥è·¯å¾„ä»¥æ‰“å¼€è°ƒè¯•è¿›ç¨‹:";
 			cin.getline(szPath , MAX_PATH);
 
-			// ´ò¿ªµ÷ÊÔ½ø³Ì
+			// æ‰“å¼€è°ƒè¯•è¿›ç¨‹
 			if(dbgEng.Open(szPath))
 				break;
 
-			cout << "³ÌĞò´ò¿ªÊ§°Ü\n";
+			cout << "ç¨‹åºæ‰“å¼€å¤±è´¥\n";
 		}
 
-		cout << "µ÷ÊÔ½ø³Ì´´½¨³É¹¦, ¿ÉÒÔ½øĞĞµ÷ÊÔ\n";
+		cout << "è°ƒè¯•è¿›ç¨‹åˆ›å»ºæˆåŠŸ, å¯ä»¥è¿›è¡Œè°ƒè¯•\n";
 
 		g_dwProcessStatus = 0;
-		// ¿ªÆô½ÓÊÕÓÃ»§ÊäÈëµÄÏß³Ì
+		// å¼€å¯æ¥æ”¶ç”¨æˆ·è¾“å…¥çš„çº¿ç¨‹
 		tid=_beginthreadex(0 , 0 , DbgBreakpointEvent , &dbgEng , 0 , &taddr);
 
 		while(1)
 		{
-			// ÔËĞĞµ÷ÊÔÆ÷,Exec²»´¦ÓÚ×èÈû×´Ì¬,Òò´ËĞèÒª·ÅÔÚwhileÑ­»·ÖĞ.
+			// è¿è¡Œè°ƒè¯•å™¨,Execä¸å¤„äºé˜»å¡çŠ¶æ€,å› æ­¤éœ€è¦æ”¾åœ¨whileå¾ªç¯ä¸­.
 			if(e_s_processQuit == dbgEng.Exec())
 			{
 				dbgEng.Close();
 				system("cls");
-				cout << "½ø³ÌÒÑÍË³ö\n";
+				cout << "è¿›ç¨‹å·²é€€å‡º\n";
 				g_dwProcessStatus = 1;
 				break;
 			}
@@ -93,7 +92,7 @@ int main()
 }
 
 
-// ÏÔÊ¾·´»ã±à
+// æ˜¾ç¤ºåæ±‡ç¼–
 void ShowAsm(DbgEngine& dbgEngine,
 			 DbgUi& ui , 
 			 DisAsmEngine& disAsmEng,
@@ -125,7 +124,7 @@ void ShowAsm(DbgEngine& dbgEngine,
 
 
 
-// ´¦Àí¶ÏµãµÄ»Øµ÷º¯Êı
+// å¤„ç†æ–­ç‚¹çš„å›è°ƒå‡½æ•°
 unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 {
 	DbgEngine* pDbg = (DbgEngine*)uParam;
@@ -144,19 +143,19 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 	{
 		if(pDbg->WaitForBreakpointEvent(30))
 		{
-			// ÇåÆÁ
+			// æ¸…å±
 			system("cls");
-			// »ñÈ¡¼Ä´æÆ÷ĞÅÏ¢
+			// è·å–å¯„å­˜å™¨ä¿¡æ¯
 			pDbg->GetRegInfo(ct);
-			// Ê¹ÓÃuiÄ£¿é½«¼Ä´æÆ÷ĞÅÏ¢Êä³ö
+			// ä½¿ç”¨uiæ¨¡å—å°†å¯„å­˜å™¨ä¿¡æ¯è¾“å‡º
 			ui.showReg(ct);
-			// Êä³ö·´»ã±à
+			// è¾“å‡ºåæ±‡ç¼–
 			ShowAsm(*pDbg , ui , disAsm , 20 , ct.Eip);
 			dwStatus = 1;
 		}
 		if(dwStatus)
 		{
-			printf("%s>" , dwStatus == 1 ? "ÔİÍ£ÖĞ" : "ÔËĞĞÖĞ");
+			printf("%s>" , dwStatus == 1 ? "æš‚åœä¸­" : "è¿è¡Œä¸­");
 			dwStatus = 0;
 		}
 
@@ -164,7 +163,7 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 		{
 			do
 			{
-				// ½ÓÊÕÓÃ»§ÊäÈëµÄÃüÁî
+				// æ¥æ”¶ç”¨æˆ·è¾“å…¥çš„å‘½ä»¤
 				gets_s(szCmdLine , 64);
 			} while(*szCmdLine == '\0');
 			dwStatus = 2;
@@ -174,10 +173,10 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 			continue;
 		}
 
-		// Ìø¹ıĞĞÍ·¿Õ¸ñ
+		// è·³è¿‡è¡Œå¤´ç©ºæ ¼
 		pCmdLine = SkipSpace(szCmdLine);
 
-		// ÅĞ¶ÏÊÇ·ñĞèÒªÍË³öµ÷ÊÔÆ÷
+		// åˆ¤æ–­æ˜¯å¦éœ€è¦é€€å‡ºè°ƒè¯•å™¨
 		if(*(DWORD*)pCmdLine == 'tixe' || g_dwProcessStatus == 1)
 		{
 			pDbg->Close();
@@ -186,11 +185,11 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 		} 
 
 
-		// ½âÎöÓÃ»§ÊäÈëµÄÃüÁî
+		// è§£æç”¨æˆ·è¾“å…¥çš„å‘½ä»¤
 		switch(*pCmdLine)
 		{
-			/*²é¿´·´»ã±à*/
-			case 'u': // ²é¿´·´»ã±à
+			/*æŸ¥çœ‹åæ±‡ç¼–*/
+			case 'u': // æŸ¥çœ‹åæ±‡ç¼–
 			{
 				dwStatus = 1;
 				char *pAddr = 0;
@@ -200,29 +199,29 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 					pAddr = "eip";
 				if(pLineCount == nullptr)
 					pLineCount = "20";
-				// ÏÔÊ¾·´»ã±à
+				// æ˜¾ç¤ºåæ±‡ç¼–
 				ShowAsm(*pDbg , ui , disAsm , exp.getValue(pLineCount) , exp.getValue(pAddr));
 				break;
 			}
 			
-			/*ÊäÈë»ã±à*/
-			case 'a': /*»ã±à*/
+			/*è¾“å…¥æ±‡ç¼–*/
+			case 'a': /*æ±‡ç¼–*/
 			{
 				dwStatus = 1;
-				// »ñÈ¡¿ªÊ¼µØÖ·
+				// è·å–å¼€å§‹åœ°å€
 				XEDPARSE xpre = { 0 };
-				xpre.x64 = false; // ÊÇ·ñ×ª»»³É64Î»µÄopCode
+				xpre.x64 = false; // æ˜¯å¦è½¬æ¢æˆ64ä½çš„opCode
 				memset(xpre.dest , 0x90 , XEDPARSE_MAXASMSIZE);
 				pCmdLine = SkipSpace(pCmdLine + 1);
 				if(*pCmdLine == 0)
 				{
-					printf("Ö¸Áî¸ñÊ½´íÎó, ¸ñÊ½Îª: a µØÖ·\n");
-					continue;// ½áÊø±¾´ÎwhileÑ­»·
+					printf("æŒ‡ä»¤æ ¼å¼é”™è¯¯, æ ¼å¼ä¸º: a åœ°å€\n");
+					continue;// ç»“æŸæœ¬æ¬¡whileå¾ªç¯
 				}
-				printf("ÊäÈëquitÍË³ö»ã±àÄ£Ê½\n");
+				printf("è¾“å…¥quité€€å‡ºæ±‡ç¼–æ¨¡å¼\n");
 				uaddr address = exp.getValue(pCmdLine);
 				if(address == 0)
-					continue;// ½áÊø±¾´ÎwhileÑ­»·
+					continue;// ç»“æŸæœ¬æ¬¡whileå¾ªç¯
 
 				while(true)
 				{
@@ -231,21 +230,21 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 					if(strcmp(xpre.instr , "quit") == 0)
 						break;
 					DWORD uLen = disAsm.getCoodeLen(address);
-					xpre.cip = address;// Ö¸ÁîËùÔÚµÄµØÖ·
+					xpre.cip = address;// æŒ‡ä»¤æ‰€åœ¨çš„åœ°å€
 					if(false == XEDParseAssemble(&xpre))
 					{
 						printf("%s\n" , xpre.error);
-						continue;// ½áÊø±¾´ÎwhileÑ­»·
+						continue;// ç»“æŸæœ¬æ¬¡whileå¾ªç¯
 					}
-					// ½«´úÂëĞ´Èëµ½Ä¿±ê½ø³Ì
+					// å°†ä»£ç å†™å…¥åˆ°ç›®æ ‡è¿›ç¨‹
 					if(!pDbg->WriteMemory(address , xpre.dest , uLen))
-						continue;// ½áÊø±¾´ÎwhileÑ­»·
-					// µØÖ·++
+						continue;// ç»“æŸæœ¬æ¬¡whileå¾ªç¯
+					// åœ°å€++
 					address += xpre.dest_size;
 				}
 				break;
 			}
-			/*²é¿´Õ»*/
+			/*æŸ¥çœ‹æ ˆ*/
 			case 'k':
 			{
 				dwStatus = 1;
@@ -255,14 +254,14 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 				ui.showStack(ct.Esp , buff , sizeof(SIZE_T) * 20);
 				break;
 			}
-			/*²é¿´ºÍĞŞ¸Ä¼Ä´æÆ÷*/
-			case 'r':/*¼Ä´æÆ÷¶ÁĞ´*/
+			/*æŸ¥çœ‹å’Œä¿®æ”¹å¯„å­˜å™¨*/
+			case 'r':/*å¯„å­˜å™¨è¯»å†™*/
 			{
 				dwStatus = 1;
-				// »ñÈ¡¼Ä´æÆ÷µÄÖµ:
-				// r ¼Ä´æÆ÷Ãû 
-				// ÉèÖÃ¼Ä´æÆ÷µÄÖµ
-				// r ¼Ä´æÆ÷Ãû = ±í´ïÊ½
+				// è·å–å¯„å­˜å™¨çš„å€¼:
+				// r å¯„å­˜å™¨å 
+				// è®¾ç½®å¯„å­˜å™¨çš„å€¼
+				// r å¯„å­˜å™¨å = è¡¨è¾¾å¼
 				char* p = szCmdLine + 1;
 				p = SkipSpace(p);
 				if(*p == 0)
@@ -280,15 +279,15 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 					printf("%s = 0x%X\n" , szCmdLine + 1 , nValue);
 				break;
 			}
-			/*²é¿´ÄÚ´æ*/
-			case 'd':/*²é¿´Êı¾İ*/
+			/*æŸ¥çœ‹å†…å­˜*/
+			case 'd':/*æŸ¥çœ‹æ•°æ®*/
 			{
 				dwStatus = 1;
 				char *p = &szCmdLine[ 1 ];
-				// É¸Ñ¡Êı¾İ¸ñÊ½
+				// ç­›é€‰æ•°æ®æ ¼å¼
 				switch(*p)
 				{
-					case 'u':/*unicode×Ö·û´®*/
+					case 'u':/*unicodeå­—ç¬¦ä¸²*/
 					{
 						SSIZE_T uAddr = exp.getValue(szCmdLine + 2);
 						BYTE lpBuff[ 16 * 6 ];
@@ -296,7 +295,7 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 						ui.showMem(uAddr , lpBuff , 16 * 6 , 1);
 					}
 					break;
-					case 'a':/*ansi×Ö·û´®*/
+					case 'a':/*ansiå­—ç¬¦ä¸²*/
 						p = &szCmdLine[ 2 ];
 					default:
 					{
@@ -309,16 +308,16 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 				}
 				break;
 			}
-			/*µ¥²½²½Èë*/
-			case 't': // ²½Èë
+			/*å•æ­¥æ­¥å…¥*/
+			case 't': // æ­¥å…¥
 			{
-				// Ê¹ÓÃµ÷ÊÔÆ÷ÒıÇæµÄº¯ÊıÀ´Ìí¼ÓÒ»¸öTF¶Ïµã
+				// ä½¿ç”¨è°ƒè¯•å™¨å¼•æ“çš„å‡½æ•°æ¥æ·»åŠ ä¸€ä¸ªTFæ–­ç‚¹
 				BPObject *pBp = pDbg->AddBreakPoint(0 , breakpointType_tf);
 				if(pBp == nullptr)
 					return 0;
 				char* pCondition = 0;
 				GetCmdLineArg(pCmdLine + 1 , 1 , &pCondition);
-				// ÉèÖÃ¶ÏµãµÄÖĞ¶ÏÌõ¼ş
+				// è®¾ç½®æ–­ç‚¹çš„ä¸­æ–­æ¡ä»¶
 				if(pCondition != 0)
 				{
 					pBp->SetCondition(pCondition);
@@ -328,24 +327,24 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 				pDbg->FinishBreakpointEvnet();
 				break;
 			}
-			/*µ¥²½²½¹ı*/
-			case 'p': // ²½¹ı
+			/*å•æ­¥æ­¥è¿‡*/
+			case 'p': // æ­¥è¿‡
 			{
 				BPObject *pBp = nullptr;
-				// ÅĞ¶Ïµ±Ç°ÊÇ·ñÊÇcallÖ¸Áî
+				// åˆ¤æ–­å½“å‰æ˜¯å¦æ˜¯callæŒ‡ä»¤
 				pDbg->GetRegInfo(ct);
 				SIZE_T uEip = ct.Eip;
 				BYTE c[ 2 ] = { 0 };
 				pDbg->ReadMemory(uEip , c , 2);
 				DWORD dwCodeLen = 5;
 				/**
-				¡¡* call µÄ»úÆ÷ÂëÓĞ:
-				¡¡* 0xe8 : 5byte,
-				¡¡* 0x9a : 7byte,
-				¡¡* 0xff :
-				¡¡*	 0x10ff ~ 0x1dff
-				¡¡* rep Ç°×ºµÄÖ¸ÁîÒ²¿ÉÒÔ²½¹ı
-				¡¡*/
+				ã€€* call çš„æœºå™¨ç æœ‰:
+				ã€€* 0xe8 : 5byte,
+				ã€€* 0x9a : 7byte,
+				ã€€* 0xff :
+				ã€€*	 0x10ff ~ 0x1dff
+				ã€€* rep å‰ç¼€çš„æŒ‡ä»¤ä¹Ÿå¯ä»¥æ­¥è¿‡
+				ã€€*/
 				if(c[ 0 ] == 0xe8/*call*/
 				   || c[ 0 ] == 0xf3/*rep*/
 				   || c[ 0 ] == 0x9a/*call*/
@@ -360,7 +359,7 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 
 				if(pBp == nullptr)
 					return 0;
-				// »ñÈ¡Ìõ¼ş
+				// è·å–æ¡ä»¶
 				char* pCondition = SkipSpace(pCmdLine + 1);
 				if(*pCondition != 0)
 				{
@@ -372,7 +371,7 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 				pDbg->FinishBreakpointEvnet();
 				break;
 			}
-			/*²é¿´¼ÓÔØµÄÄ£¿é*/
+			/*æŸ¥çœ‹åŠ è½½çš„æ¨¡å—*/
 			case 'm':
 			{
 				dwStatus = 1;
@@ -381,7 +380,7 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 					list<MODULEFULLINFO> modList;
 					pDbg->GetModuleList(modList);
 					printf("+------------------+----------+----------------------------------------------------+\n");
-					printf("|     ¼ÓÔØ»ùÖ·     + Ä£¿é´óĞ¡ |                    Ä£¿éÃû                          |\n");
+					printf("|     åŠ è½½åŸºå€     + æ¨¡å—å¤§å° |                    æ¨¡å—å                          |\n");
 					printf("+------------------+----------+----------------------------------------------------+\n");
 					for(auto &i : modList)
 					{
@@ -389,25 +388,25 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 					}
 					printf("+------------------+----------+----------------------------------------------------+\n");
 				}
-				continue;// ½áÊø±¾´ÎwhileÑ­»·
+				continue;// ç»“æŸæœ¬æ¬¡whileå¾ªç¯
 			}
-			/*ÉèÖÃ¶Ïµã*/
-			case 'b':/*ÏÂ¶Ï*/
+			/*è®¾ç½®æ–­ç‚¹*/
+			case 'b':/*ä¸‹æ–­*/
 			{
 				dwStatus = 1;
 				SetBreakpoint(pDbg ,&ui , pCmdLine);
 				break;
 			}
 
-			/*ÔËĞĞ³ÌĞò*/
+			/*è¿è¡Œç¨‹åº*/
 			case 'g':
 				pDbg->FinishBreakpointEvnet();
 				break;
-			/*²é¿´°ïÖú*/
+			/*æŸ¥çœ‹å¸®åŠ©*/
 			case 'h':
 				dwStatus = 1;
 				showHelp();
-				break;;// ½áÊø±¾´ÎwhileÑ­»·
+				break;;// ç»“æŸæœ¬æ¬¡whileå¾ªç¯
 		}
 	}
 	
@@ -416,63 +415,63 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 }
 
 
-// ÏÔÊ¾°ïÖúĞÅÏ¢
+// æ˜¾ç¤ºå¸®åŠ©ä¿¡æ¯
 void showHelp()
 {
 	printf("----------------------------------------------------\n");
-	printf("h : ²é¿´°ïÖú\n");
-	//printf("o : ´ò¿ªµ÷ÊÔ½ø³Ì\n");
-	//printf("    ¸ñÊ½Îª: o ¿ÉÖ´ĞĞ³ÌĞòÂ·¾¶\n");
-	printf("exit: ÍË³öµ÷ÊÔ»á»°\n");
-	printf("ml: ÏÔÊ¾Ä£¿éÁĞ±í\n");
-	printf("g : ÔËĞĞ³ÌĞò\n");
-	printf("p : µ¥²½\n");
-	printf("t : ²½¹ı\n");
-	printf("a : ½øÈë»ã±àÄ£Ê½\n");
-	printf("    ¸ñÊ½Îª : a ¿ªÊ¼µØÖ·\n");
-	printf("    ÊäÈëquit½áÊø»ã±àÄ£Ê½\n");
-	printf("u : ²é¿´·´»ã±à\n");
-	printf("    ¸ñÊ½Îª : u ¿ªÊ¼µØÖ·(±í´ïÊ½) Ö¸ÁîÌõÊı\n");
-	printf("    ÀıÈç   : u eip\n");
-	printf("    ÀıÈç   : u eax 100\n");
-	printf("    ÀıÈç   : u 0x401000 100\n");
-	printf("d : ²é¿´ÄÚ´æÊı¾İ\n");
-	printf("    ¸ñÊ½Îª : d ¿ªÊ¼µØÖ·\n");
-	printf("    ¸ñÊ½Îª : da ¿ªÊ¼µØÖ·(ÏÔÊ¾×Ö·û´®Ê±Ê¹ÓÃANSIII×Ö·û)\n");
-	printf("    ¸ñÊ½Îª : du ¿ªÊ¼µØÖ·(ÏÔÊ¾×Ö·û´®Ê±Ê¹ÓÃUnicode×Ö·û)\n");
-	printf("r : ²é¿´/ÉèÖÃ¼Ä´æÆ÷\n");
-	printf("    ¸ñÊ½Îª : r ¼Ä´æÆ÷Ãû\n");
+	printf("h : æŸ¥çœ‹å¸®åŠ©\n");
+	//printf("o : æ‰“å¼€è°ƒè¯•è¿›ç¨‹\n");
+	//printf("    æ ¼å¼ä¸º: o å¯æ‰§è¡Œç¨‹åºè·¯å¾„\n");
+	printf("exit: é€€å‡ºè°ƒè¯•ä¼šè¯\n");
+	printf("ml: æ˜¾ç¤ºæ¨¡å—åˆ—è¡¨\n");
+	printf("g : è¿è¡Œç¨‹åº\n");
+	printf("p : å•æ­¥\n");
+	printf("t : æ­¥è¿‡\n");
+	printf("a : è¿›å…¥æ±‡ç¼–æ¨¡å¼\n");
+	printf("    æ ¼å¼ä¸º : a å¼€å§‹åœ°å€\n");
+	printf("    è¾“å…¥quitç»“æŸæ±‡ç¼–æ¨¡å¼\n");
+	printf("u : æŸ¥çœ‹åæ±‡ç¼–\n");
+	printf("    æ ¼å¼ä¸º : u å¼€å§‹åœ°å€(è¡¨è¾¾å¼) æŒ‡ä»¤æ¡æ•°\n");
+	printf("    ä¾‹å¦‚   : u eip\n");
+	printf("    ä¾‹å¦‚   : u eax 100\n");
+	printf("    ä¾‹å¦‚   : u 0x401000 100\n");
+	printf("d : æŸ¥çœ‹å†…å­˜æ•°æ®\n");
+	printf("    æ ¼å¼ä¸º : d å¼€å§‹åœ°å€\n");
+	printf("    æ ¼å¼ä¸º : da å¼€å§‹åœ°å€(æ˜¾ç¤ºå­—ç¬¦ä¸²æ—¶ä½¿ç”¨ANSIIIå­—ç¬¦)\n");
+	printf("    æ ¼å¼ä¸º : du å¼€å§‹åœ°å€(æ˜¾ç¤ºå­—ç¬¦ä¸²æ—¶ä½¿ç”¨Unicodeå­—ç¬¦)\n");
+	printf("r : æŸ¥çœ‹/è®¾ç½®å¯„å­˜å™¨\n");
+	printf("    æ ¼å¼ä¸º : r å¯„å­˜å™¨å\n");
 	printf("    r eax = 0x1000\n");
-	printf("b : ÉèÖÃ¶Ïµã\n");
-	printf("    ¸ñÊ½:\n");
-	printf("    bp µØÖ· Ìõ¼ş±í´ïÊ½ => Èí¼ş¶Ïµã\n");
-	printf("    ÀıÈç: bp 0x401000 eax==0 && byte[0x403000]==97\n");
-	printf("    bh µØÖ· ¶ÏµãÊôĞÔ Ìõ¼ş±í´ïÊ½ => Ó²¼ş¶Ïµã\n");
-	printf("    ÀıÈç: bh 0x401000 e \n");
-	printf("    bm µØÖ· ¶ÏµãÊôĞÔ Ìõ¼ş±í´ïÊ½ => ÄÚ´æ¶Ïµã\n");
-	printf("    ÀıÈç: bm 0x401000 e \n");
-	printf("    bl ÁĞ³öËùÓĞ¶Ïµã\n");
-	printf("    bc ĞòºÅ É¾³ıÖ¸¶¨ĞòºÅµÄ¶Ïµã\n");
-	printf("k : ²é¿´Õ»\n");
+	printf("b : è®¾ç½®æ–­ç‚¹\n");
+	printf("    æ ¼å¼:\n");
+	printf("    bp åœ°å€ æ¡ä»¶è¡¨è¾¾å¼ => è½¯ä»¶æ–­ç‚¹\n");
+	printf("    ä¾‹å¦‚: bp 0x401000 eax==0 && byte[0x403000]==97\n");
+	printf("    bh åœ°å€ æ–­ç‚¹å±æ€§ æ¡ä»¶è¡¨è¾¾å¼ => ç¡¬ä»¶æ–­ç‚¹\n");
+	printf("    ä¾‹å¦‚: bh 0x401000 e \n");
+	printf("    bm åœ°å€ æ–­ç‚¹å±æ€§ æ¡ä»¶è¡¨è¾¾å¼ => å†…å­˜æ–­ç‚¹\n");
+	printf("    ä¾‹å¦‚: bm 0x401000 e \n");
+	printf("    bl åˆ—å‡ºæ‰€æœ‰æ–­ç‚¹\n");
+	printf("    bc åºå· åˆ é™¤æŒ‡å®šåºå·çš„æ–­ç‚¹\n");
+	printf("k : æŸ¥çœ‹æ ˆ\n");
 	printf("----------------------------------------------------\n");
 
 }
 
-// »ñÈ¡µÚ¶ş¸ö²ÎÊı(²ÎÊıÖ®¼äÒÔ¿Õ¸ñ¼ä¸ô¿ª
+// è·å–ç¬¬äºŒä¸ªå‚æ•°(å‚æ•°ä¹‹é—´ä»¥ç©ºæ ¼é—´éš”å¼€
 char* GetSecondArg(char* pBuff)
 {
 	for(; *pBuff != 0; ++pBuff)
 	{
-		if(*pBuff == ' ')//ÕÒµ½µÚÒ»¸ö¿Õ¸ñ
+		if(*pBuff == ' ')//æ‰¾åˆ°ç¬¬ä¸€ä¸ªç©ºæ ¼
 		{
-			*pBuff = 0; // °Ñ¿Õ¸ñ±ä³É×Ö·û´®½áÊø·û,·Ö¸ôÁ½¸ö²ÎÊı
-			return pBuff + 1;//·µ»ØµÚ¶ş¸ö²ÎÊıµÄ¿ªÊ¼µØÖ·
+			*pBuff = 0; // æŠŠç©ºæ ¼å˜æˆå­—ç¬¦ä¸²ç»“æŸç¬¦,åˆ†éš”ä¸¤ä¸ªå‚æ•°
+			return pBuff + 1;//è¿”å›ç¬¬äºŒä¸ªå‚æ•°çš„å¼€å§‹åœ°å€
 		}
 	}
 	return pBuff;
 }
 
-// Ìø¹ı¿Õ¸ñ(°üÀ¨»»ĞĞ·û,tab·û)
+// è·³è¿‡ç©ºæ ¼(åŒ…æ‹¬æ¢è¡Œç¬¦,tabç¬¦)
 inline char* SkipSpace(char* pBuff)
 {
 	for(; *pBuff == ' ' || *pBuff == '\t' || *pBuff == '\r' || *pBuff == '\n' ; ++pBuff);
@@ -500,69 +499,69 @@ void GetCmdLineArg(char* pszCmdLine, int nArgCount,...)
 	va_end(argptr);
 }
 
-// ÉèÖÃ¶Ïµã
+// è®¾ç½®æ–­ç‚¹
 void SetBreakpoint(DbgEngine* pDbg ,DbgUi* pUi , char* szCmdLine)
 {
-	char* pAddr = 0;//¶ÏµãµØÖ·
-	char* pType = 0;//¶ÏµãÀàĞÍ
-	char* pLen = 0;//¶Ïµã³¤¶È
-	char* pRule = 0; // ¶ÏµãÃüÖĞ¹æÔò
+	char* pAddr = 0;//æ–­ç‚¹åœ°å€
+	char* pType = 0;//æ–­ç‚¹ç±»å‹
+	char* pLen = 0;//æ–­ç‚¹é•¿åº¦
+	char* pRule = 0; // æ–­ç‚¹å‘½ä¸­è§„åˆ™
 	Expression exp(pDbg);
 
-	char		cType = *(SkipSpace(szCmdLine + 1));// ¶ÏµãÀàĞÍ
+	char		cType = *(SkipSpace(szCmdLine + 1));// æ–­ç‚¹ç±»å‹
 	E_BPType	bpType = e_bt_none;
-	SIZE_T		uAddr = 0; // ÏÂ¶ÏµØÖ·
+	SIZE_T		uAddr = 0; // ä¸‹æ–­åœ°å€
 	uint		uBPLen = 1;
 	switch(cType)
 	{
-		case 'p':/*ÆÕÍ¨¶Ïµã*/
+		case 'p':/*æ™®é€šæ–­ç‚¹*/
 		{
 			char* pAddrr = 0 ;
 			bpType = breakpointType_soft;
 			GetCmdLineArg(szCmdLine + 2 , 2 , &pAddrr , &pRule);
 			if(pAddrr == nullptr)
 				pAddrr = "eip";
-			// µÃµ½µØÖ·
+			// å¾—åˆ°åœ°å€
 			uAddr = exp.getValue(pAddrr);
 			break;
 		}
-		case 'l':/*¶ÏµãÁĞ±í*/
+		case 'l':/*æ–­ç‚¹åˆ—è¡¨*/
 		{
 			pUi->showBreakPointList(pDbg->GetBPListBegin() , pDbg->GetBPListEnd());
 			return;
 		}
-		case 'c':/*É¾³ı¶Ïµã*/
+		case 'c':/*åˆ é™¤æ–­ç‚¹*/
 		{
 			DWORD	dwIndex = 0;
 			sscanf_s(szCmdLine + 2 , "%d" , &dwIndex);
 			pDbg->DeleteBreakpoint(dwIndex);
 			return;
 		}
-		case 'n':/*º¯ÊıÃû¶Ïµã*/
+		case 'n':/*å‡½æ•°åæ–­ç‚¹*/
 		{
 			if(nullptr == pDbg->AddBreakPoint(SkipSpace(szCmdLine + 2)))
-				cout << "ÕÒ²»µ½·ûºÅ\n";
-			cout << "ÉèÖÃ³É¹¦!\n";
+				cout << "æ‰¾ä¸åˆ°ç¬¦å·\n";
+			cout << "è®¾ç½®æˆåŠŸ!\n";
 			return;
 		}
-		case 'h':/*Ó²¼ş¶Ïµã*/
-		case 'm': /*ÄÚ´æ·ÃÎÊ¶Ïµã*/
+		case 'h':/*ç¡¬ä»¶æ–­ç‚¹*/
+		case 'm': /*å†…å­˜è®¿é—®æ–­ç‚¹*/
 		{
 			GetCmdLineArg(szCmdLine + 2 , 4 , &pAddr , &pType , &pLen , &pRule);
 			if(pAddr == 0 || pType == 0)
 			{
-				printf("bm/bh µØÖ· ÀàĞÍ(r/w/e) ³¤¶È(1/2/4)(¿ÉÑ¡) Ìõ¼ş(¿ÉÑ¡)\n");
+				printf("bm/bh åœ°å€ ç±»å‹(r/w/e) é•¿åº¦(1/2/4)(å¯é€‰) æ¡ä»¶(å¯é€‰)\n");
 				return;
 			}
 
 			uAddr = exp.getValue(pAddr);
-			switch(*pType) // É¸Ñ¡¶ÏµãµÄÀàĞÍ
+			switch(*pType) // ç­›é€‰æ–­ç‚¹çš„ç±»å‹
 			{
 				case 'r':bpType = cType == 'm' ? breakpointType_acc_r : breakpointType_hard_r; break;
 				case 'w':bpType = cType == 'm' ? breakpointType_acc_w : breakpointType_hard_w; break;
 				case 'e':bpType = cType == 'm' ? breakpointType_acc_e : breakpointType_hard_e; break;
 				default:
-					printf("¶ÏµãÀàĞÍÉèÖÃ´íÎó,·ÃÎÊ¶ÏµãµÄÀàĞÍÓĞ: r(¶Á),w(Ğ´),e(Ö´ĞĞ)\n");
+					printf("æ–­ç‚¹ç±»å‹è®¾ç½®é”™è¯¯,è®¿é—®æ–­ç‚¹çš„ç±»å‹æœ‰: r(è¯»),w(å†™),e(æ‰§è¡Œ)\n");
 					return;
 			}
 
@@ -570,20 +569,20 @@ void SetBreakpoint(DbgEngine* pDbg ,DbgUi* pUi , char* szCmdLine)
 			if(uBPLen == 0)
 				uBPLen = 1;
 
-			if(pLen == 0 && cType == 'h') //Èç¹ûÊÇÓ²¼ş¶Ïµã,Ôò½«³¤¶ÈÉèÎª0
+			if(pLen == 0 && cType == 'h') //å¦‚æœæ˜¯ç¡¬ä»¶æ–­ç‚¹,åˆ™å°†é•¿åº¦è®¾ä¸º0
 				pLen = "0";
-			else if(pLen > 0 && cType == 'h') // ¼ì²âÓ²¼ş¶ÏµãµØÖ·ºÍ³¤¶ÈµÄ¶ÔÓ¦¹ØÏµ
+			else if(pLen > 0 && cType == 'h') // æ£€æµ‹ç¡¬ä»¶æ–­ç‚¹åœ°å€å’Œé•¿åº¦çš„å¯¹åº”å…³ç³»
 			{
-				if(*pType == 'e') // Èç¹ûÊÇÖ´ĞĞ¶Ïµã,³¤¶ÈÖ»ÄÜÎª0
+				if(*pType == 'e') // å¦‚æœæ˜¯æ‰§è¡Œæ–­ç‚¹,é•¿åº¦åªèƒ½ä¸º0
 					uBPLen = 0;
-				else // Èç¹ûÊÇ¶ÁĞ´¶Ïµã,¶ÏµãµØÖ·ºÍ³¤¶È±ØĞëÂú×ã¶ÔÓ¦¹ØÏµ
+				else // å¦‚æœæ˜¯è¯»å†™æ–­ç‚¹,æ–­ç‚¹åœ°å€å’Œé•¿åº¦å¿…é¡»æ»¡è¶³å¯¹åº”å…³ç³»
 				{
-					// Ä¬ÈÏ³¤¶ÈÎª4¸ö×Ö½Ú
+					// é»˜è®¤é•¿åº¦ä¸º4ä¸ªå­—èŠ‚
 					uBPLen = 3;
-					// Èç¹û³¤¶ÈÊÇ4 , µ«µØÖ·²¢²»ÊÇ4µÄ±¶Êı,Ôò¶Ïµã³¤¶È×ö¶àÊÇ2¸ö×Ö½Ú
+					// å¦‚æœé•¿åº¦æ˜¯4 , ä½†åœ°å€å¹¶ä¸æ˜¯4çš„å€æ•°,åˆ™æ–­ç‚¹é•¿åº¦åšå¤šæ˜¯2ä¸ªå­—èŠ‚
 					if(*pLen == '4' && uAddr % 4 != 0)
 						uBPLen = 1;
-					// Èç¹û³¤¶ÈÊÇ2 , µ«µØÖ·²¢²»ÊÇ2µÄ±¶Êı,Ôò¶Ïµã³¤¶È×î¶àÊÇ1¸ö×Ö½Ú
+					// å¦‚æœé•¿åº¦æ˜¯2 , ä½†åœ°å€å¹¶ä¸æ˜¯2çš„å€æ•°,åˆ™æ–­ç‚¹é•¿åº¦æœ€å¤šæ˜¯1ä¸ªå­—èŠ‚
 					if(*pLen == '2' && uAddr % 2 != 0)
 						uBPLen = 0;
 				}
@@ -591,19 +590,19 @@ void SetBreakpoint(DbgEngine* pDbg ,DbgUi* pUi , char* szCmdLine)
 			break;
 		}
 		default:
-			cout << "Ã»ÓĞ¸ÃÀàĞÍµÄ¶Ïµã\n";
+			cout << "æ²¡æœ‰è¯¥ç±»å‹çš„æ–­ç‚¹\n";
 			return;
 	}
 
-	// »ñÈ¡Íê¶ÏµãµÄµØÖ·,ÀàĞÍ,Ìõ¼şºó, ½øĞĞÏÂ¶Ï.
+	// è·å–å®Œæ–­ç‚¹çš„åœ°å€,ç±»å‹,æ¡ä»¶å, è¿›è¡Œä¸‹æ–­.
 	BPObject* pBp = pDbg->AddBreakPoint(uAddr , bpType , uBPLen);
 	if(pBp == nullptr)
 	{
-		printf("ÉèÖÃ¶ÏµãÊ§°Ü\n");
+		printf("è®¾ç½®æ–­ç‚¹å¤±è´¥\n");
 		return;
 	}
 
-	// Èç¹û¶ÏµãĞ¯´ø±í´ïÊ½, Ôò°Ñ±í´ïÊ½ÉèÖÃµ½¶ÏµãÉÏ
+	// å¦‚æœæ–­ç‚¹æºå¸¦è¡¨è¾¾å¼, åˆ™æŠŠè¡¨è¾¾å¼è®¾ç½®åˆ°æ–­ç‚¹ä¸Š
 	if(pRule != nullptr)
 		BreakpointEngine::SetExp(pBp , pRule);
 	return;
