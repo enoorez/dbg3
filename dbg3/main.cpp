@@ -31,7 +31,6 @@ inline char* SkipSpace(char* pBuff);
 
 
 // 调试器引擎的断点处理回调函数
-// 断点被命中时,调试器引擎会调用此函数
 unsigned int __stdcall DbgBreakpointEvent(void* uParam);
 unsigned int __stdcall OtherDbgBreakpointEvent(void* uParam);
 
@@ -170,9 +169,8 @@ unsigned int __stdcall DbgBreakpointEvent(void* uParam)
 			dwStatus = 2;
 		}
 		else
-		{
 			continue;
-		}
+
 
 		// 跳过行头空格
 		pCmdLine = SkipSpace(szCmdLine);
